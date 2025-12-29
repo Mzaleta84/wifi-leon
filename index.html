@@ -10,20 +10,14 @@
         .header img { width: 140px; margin-bottom: 10px; }
         h1 { font-size: 1.8rem; text-transform: uppercase; margin: 0; line-height: 1.1; }
         .sub-header { font-size: 1.1rem; font-weight: bold; margin-top: 5px; opacity: 0.9; }
-        
         .status-icons { display: flex; justify-content: center; gap: 25px; margin: 25px 0; }
         .status-icons img { width: 75px; height: 75px; }
-        
-        .info-section { font-size: 0.95rem; line-height: 1.6; margin: 25px 0; padding: 0 15px; background: rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; }
-        .info-section p { margin: 10px 0; }
+        .info-section { font-size: 0.95rem; line-height: 1.6; margin: 25px 0; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px; }
         .phone-block { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 10px; border: 2px dashed white; padding: 8px; border-radius: 8px; }
-
-        .btn-access { background-color: white; color: #0084FF; border: none; border-radius: 35px; padding: 18px 40px; font-size: 1.1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 6px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }
-        .btn-access:active { transform: scale(0.95); }
-
+        .btn-access { background-color: white; color: #0084FF; border: none; border-radius: 35px; padding: 18px 40px; font-size: 1.1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
         .footer { position: fixed; bottom: 0; width: 100%; z-index: 500; }
-        .green-bar { background: #20C073; padding: 12px; font-weight: bold; font-size: 0.8rem; color: white; text-align: center; letter-spacing: 1px; }
-        .white-bar { background: white; padding: 12px; text-align: center; }
+        .green-bar { background: #20C073; padding: 12px; font-weight: bold; font-size: 0.8rem; }
+        .white-bar { background: white; padding: 12px; }
         .white-bar img { max-width: 90%; height: auto; max-height: 45px; }
     </style>
 </head>
@@ -44,55 +38,46 @@
     <div class="info-section">
         <p>Cada sesión se encuentra <b>limitada a 50 minutos</b>.</p>
         <p>Al terminar, podrás reconectarte después de 5 minutos.</p>
-        <p>Reporte de fallas:
-            <span class="phone-block">477 429 74 46</span>
-        </p>
+        <p>Reporte de fallas: <span class="phone-block">477 429 74 46</span></p>
     </div>
 
-    <div id="connectSection">
-        <form id="cambiumForm" method="post" action="">
-            <input type="hidden" name="ga_srvr" id="ga_srvr" value="">
-            <input type="hidden" name="ga_ap_mac" id="ga_ap_mac" value="">
-            <input type="hidden" name="ga_cm_mac" id="ga_cm_mac" value="">
-            <input type="hidden" name="ga_nas_id" id="ga_nas_id" value="">
-            <input type="hidden" name="ga_ssid" id="ga_ssid" value="">
-            <input type="hidden" name="ga_success_url" value="https://empleo.leon.gob.mx">
-            
-            <button type="submit" class="btn-access">Aceptar y Conectar</button>
-        </form>
-    </div>
+    <form id="cambiumForm" method="post" action="">
+        <input type="hidden" name="ga_srvr" id="ga_srvr">
+        <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
+        <input type="hidden" name="ga_cm_mac" id="ga_cm_mac">
+        <input type="hidden" name="ga_nas_id" id="ga_nas_id">
+        <input type="hidden" name="ga_ssid" id="ga_ssid">
+        <input type="hidden" name="ga_success_url" value="https://empleo.leon.gob.mx">
+        <button type="submit" class="btn-access">Aceptar y Conectar</button>
+    </form>
 </div>
 
 <div class="footer">
     <div class="green-bar">YO QUIERO A LEÓN VIVO Y CON MÁS PARQUES</div>
-    <div class="white-bar"><img src="logos-footer.png" alt="Logos Municipales"></div>
+    <div class="white-bar"><img src="logos-footer.png"></div>
 </div>
 
 <script>
-    function setupConnection() {
+    window.onload = function() {
         const params = new URLSearchParams(window.location.search);
+        const form = document.getElementById('cambiumForm');
         
-        // Verificamos si el AP mandó los datos necesarios
-        if (params.get('ga_srvr')) {
-            document.getElementById('ga_srvr').value = params.get('ga_srvr');
-            document.getElementById('ga_ap_mac').value = params.get('ga_ap_mac');
-            document.getElementById('ga_cm_mac').value = params.get('ga_cm_mac');
-            document.getElementById('ga_nas_id').value = params.get('ga_nas_id');
-            document.getElementById('ga_ssid').value = params.get('ga_ssid');
-            
-            // Configuramos el destino del formulario al servidor/IP del AP
-            document.getElementById('cambiumForm').action = "https://" + params.get('ga_srvr') + "/cgi-bin/login";
-        }
+        // Captura de datos del AP
+        const ga_srvr = params.get('ga_srvr') || "portal.cambiumnetworks.com";
+        document.getElementById('ga_srvr').value = ga_srvr;
+        document.getElementById('ga_ap_mac').value = params.get('ga_ap_mac') || "";
+        document.getElementById('ga_cm_mac').value = params.get('ga_cm_mac') || "";
+        document.getElementById('ga_nas_id').value = params.get('ga_nas_id') || "";
+        document.getElementById('ga_ssid').value = params.get('ga_ssid') || "";
 
-        // Limpiamos la URL para que no se vea el usuario de GitHub
+        // Evita el error 403 mandando el POST al AP/Cambium, NO a GitHub
+        form.action = "https://" + ga_srvr + "/cgi-bin/login";
+
+        // Limpia la URL de GitHub por estética
         if (window.history.replaceState) {
             window.history.replaceState({}, null, window.location.pathname);
         }
-    }
-
-    // Ejecutar al cargar la página
-    window.onload = setupConnection;
+    };
 </script>
-
 </body>
 </html>
