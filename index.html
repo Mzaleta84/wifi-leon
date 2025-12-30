@@ -3,40 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wi-Fi Access</title>
+    <title>Portal Cautivo - León 2026</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 320px; border-top: 6px solid #25478d; }
-        .btn { background-color: #25478d; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; }
+        body { margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #0084FF; color: white; text-align: center; }
+        .container { width: 100%; max-width: 450px; margin: auto; padding: 20px; box-sizing: border-box; }
+        .header img { width: 120px; margin: 15px; }
+        
+        /* Estilo del Formulario Nativo */
+        .modal-content { background: white; color: #333; padding: 25px; border-radius: 15px; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #0084FF; font-size: 0.9rem; }
+        select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; background-color: #f9f9f9; }
+        
+        .btn-submit { background-color: #FFD700; color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        
+        /* Sección de Éxito Oculta */
+        #successSection { display: none; padding-top: 20px; }
+        .btn-connect { background-color: #28a745; color: white; border: none; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.3rem; font-weight: bold; text-decoration: none; display: block; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2 style="color:#25478d">Conexión Lista</h2>
-    <p>Haz clic para finalizar el acceso.</p>
-    <a href="#" id="connectBtn" class="btn">ACCEDER AHORA</a>
+<div class="container">
+    <div class="header">
+        <img src="logo.png" alt="León 2026">
+        <h1 style="font-size: 1.5rem;">CONÉCTATE A LA RED</h1>
+    </div>
+
+    <div id="surveyModal">
+        <div class="modal-content">
+            <h2 style="color:#0084FF; margin-top:0; font-size: 1.1rem; text-align: center;">BREVE ENCUESTA CIUDADANA</h2>
+            
+            <form id="googleSurvey" action="https://docs.google.com/forms/d/e/1FAIpQLScmM9i_9-1mThNTYMDmPZWDrbYvMvhrXducX65l2SSkF1rkxA/formResponse" method="POST" target="hidden_iframe" onsubmit="handleFormSubmit()">
+                
+                <label>Género:</label>
+                <select name="entry.550879783" required>
+                    <option value="">Selecciona...</option>
+                    <option value="Hombre">Hombre</option>
+                    <option value="Mujer">Mujer</option>
+                    <option value="No quiero decirlo">No quiero decirlo</option>
+                </select>
+
+                <label>Rango de edad:</label>
+                <select name="entry.1118154402" required>
+                    <option value="">Selecciona...</option>
+                    <option value="Menos de 18 años">Menos de 18 años</option>
+                    <option value="18-25 años">18-25 años</option>
+                    <option value="26-35 años">26-35 años</option>
+                    <option value="36-45 años">36-45 años</option>
+                    <option value="46-55 años">46-55 años</option>
+                    <option value="56-64 años">56-64 años</option>
+                    <option value="65 y más">65 y más</option>
+                </select>
+
+                <label>Estado civil:</label>
+                <select name="entry.441314420" required>
+                    <option value="">Selecciona...</option>
+                    <option value="Soltero(a)">Soltero(a)</option>
+                    <option value="Casado(a)">Casado(a)</option>
+                    <option value="Divorciado(a)">Divorciado(a)</option>
+                    <option value="Viudo(a)">Viudo(a)</option>
+                    <option value="Unión libre">Unión libre</option>
+                </select>
+
+                <label>Nivel de estudios:</label>
+                <select name="entry.38432281" required>
+                    <option value="">Selecciona...</option>
+                    <option value="Primaria">Primaria</option>
+                    <option value="Secundaria">Secundaria</option>
+                    <option value="Preparatoria o técnico">Preparatoria o técnico</option>
+                    <option value="Técnico Superior universitario">Técnico Superior universitario</option>
+                    <option value="Universidad">Universidad</option>
+                    <option value="Sin estudios">Sin estudios</option>
+                </select>
+
+                <input type="hidden" name="entry.1610266945" id="hidden_mac">
+                <input type="hidden" name="entry.852007566" id="hidden_device">
+
+                <button type="submit" class="btn-submit">Enviar y Continuar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="successSection">
+        <h2 style="color:#FFD700;">¡LISTO!</h2>
+        <p>Tu encuesta ha sido registrada.</p>
+        <a href="#" id="finalAuthBtn" class="btn-connect">CONECTAR AHORA</a>
+    </div>
 </div>
 
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
 <script>
-    document.getElementById('connectBtn').addEventListener('click', function(e) {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // 1. Capturar MAC y Dispositivo al cargar
+    window.onload = function() {
+        const mac = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac') || 'No capturada';
+        document.getElementById('hidden_mac').value = mac;
+        document.getElementById('hidden_device').value = navigator.userAgent;
+    };
+
+    // 2. Manejar el envío del formulario
+    function handleFormSubmit() {
+        // Mostramos la sección de éxito tras un breve retraso
+        setTimeout(() => {
+            document.getElementById('surveyModal').style.display = 'none';
+            document.getElementById('successSection').style.display = 'block';
+        }, 1000);
+    }
+
+    // 3. LA LLAVE DE ACCESO (Lo que ya nos funcionó)
+    document.getElementById('finalAuthBtn').addEventListener('click', function(e) {
         e.preventDefault();
-        const urlParams = new URLSearchParams(window.location.search);
         
-        // Parámetros capturados
         const ap = urlParams.get('ga_ap_mac');
         const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
         const session = urlParams.get('s');
         const ssid = urlParams.get('ga_ssid');
-        // Si el servidor es 192.168.x.x, lo cambiamos por el nombre DNS para evitar el error de certificado
         let server = urlParams.get('ga_srvr');
+
         if (!server || server.includes('192.168')) {
             server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
         }
-        const redir = urlParams.get('ga_continue_url') || "http://connectivitycheck.gstatic.com/generate_204";
 
-        // IMPORTANTE: Cambiamos a HTTP (sin S) para la validación inicial 
-        // si el certificado sigue dando problemas, o forzamos el subdominio guest.
+        // URL Success 204 para cerrar la ventana del portal
+        const successUrl = "http://connectivitycheck.gstatic.com/generate_204";
+
         const finalUrl = `https://${server}/guestportal/login?` + 
                          `freeAccess=true&` +
                          `ga_ap_mac=${encodeURIComponent(ap)}&` +
@@ -44,7 +136,7 @@
                          `ga_srvr=${encodeURIComponent(server)}&` +
                          `ga_ssid=${encodeURIComponent(ssid)}&` +
                          `s=${encodeURIComponent(session)}&` +
-                         `ga_continue_url=${encodeURIComponent(redir)}`;
+                         `ga_continue_url=${encodeURIComponent(successUrl)}`;
 
         window.location.href = finalUrl;
     });
