@@ -134,4 +134,67 @@
             <img src="alee.png" alt="Ale">
             <img src="free-wifi-leon.png" alt="Free WiFi">
             <img src="chamba-modulo.png" alt="Chamba">
+            <img src="innovacion.png" alt="Innovación">
+            <img src="alee.png" alt="Ale">
+            <img src="free-wifi-leon.png" alt="Free WiFi">
+        </div>
+    </div>
+</div>
 
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted) { finishSurvey(); }"></iframe>
+
+<script>
+    var submitted = false;
+    const urlParams = new URLSearchParams(window.location.search);
+
+    window.onload = function() {
+        // Captura de datos iniciales
+        document.getElementById('hidden_mac').value = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac') || 'No capturada';
+        document.getElementById('hidden_device').value = navigator.userAgent;
+
+        // Comprobación de registro previo en el dispositivo
+        if (localStorage.getItem('leon_wifi_reg_v2') === 'true') {
+            document.getElementById('connectSection').style.display = "block";
+        } else {
+            document.getElementById('surveyModal').style.display = "flex";
+        }
+    };
+
+    function finishSurvey() {
+        localStorage.setItem('leon_wifi_reg_v2', 'true');
+        document.getElementById('surveyModal').style.display = "none";
+        document.getElementById('connectSection').style.display = "block";
+    }
+
+    // EL MOTOR DE CONEXIÓN CON REDIRECCIÓN A EMPLEO
+    document.getElementById('connectBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const ap = urlParams.get('ga_ap_mac');
+        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
+        const session = urlParams.get('s');
+        const ssid = urlParams.get('ga_ssid');
+        let server = urlParams.get('ga_srvr');
+
+        // Fallback si el server no viene en la URL
+        if (!server || server.includes('192.168')) {
+            server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+        }
+
+        // URL de destino final
+        const redir = "https://empleo.leon.gob.mx";
+
+        const finalUrl = `https://${server}/guestportal/login?` + 
+                         `freeAccess=true&` +
+                         `ga_ap_mac=${encodeURIComponent(ap)}&` +
+                         `ga_cmac=${encodeURIComponent(client)}&` +
+                         `ga_srvr=${encodeURIComponent(server)}&` +
+                         `ga_ssid=${encodeURIComponent(ssid)}&` +
+                         `s=${encodeURIComponent(session)}&` +
+                         `ga_continue_url=${encodeURIComponent(redir)}`;
+
+        window.location.href = finalUrl;
+    });
+</script>
+</body>
+</html>
