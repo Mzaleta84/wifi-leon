@@ -3,50 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wi-Fi Access</title>
+    <title>Portal Wi-Fi</title>
     <style>
-        body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 2.5rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 380px; border-top: 5px solid #25478d; }
-        .btn-connect { background-color: #25478d; color: white; border: none; padding: 14px; width: 100%; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; text-decoration: none; display: inline-block; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; border-top: 4px solid #25478d; }
+        .btn { background-color: #25478d; color: white; border: none; padding: 15px; width: 100%; border-radius: 3px; font-size: 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn:hover { background-color: #1a3263; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Access Internet</h2>
-    <p>Presione el botón para conectar a la red.</p>
-    <a href="#" id="connectLink" class="btn-connect">Connect</a>
+    <h2 style="color: #424242;">Bienvenido</h2>
+    <p style="color: #666; margin-bottom: 25px;">Haga clic para acceder a Internet</p>
+
+    <form method="POST" id="portalForm" action="https://us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com/guestportal/login">
+        
+        <input type="hidden" name="freeAccess" value="true">
+        <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
+        <input type="hidden" name="ga_cmac" id="ga_cmac">
+        <input type="hidden" name="ga_srvr" id="ga_srvr">
+        <input type="hidden" name="ga_ssid" id="ga_ssid">
+        <input type="hidden" name="s" id="s">
+        <input type="hidden" name="ga_continue_url" id="ga_continue_url">
+        
+        <button type="submit" class="btn">Conectar</button>
+    </form>
 </div>
 
 <script>
-    document.getElementById('connectLink').addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        // 1. FORZAMOS EL SERVIDOR DE LA NUBE (No la IP 192.168...)
-        // Usamos la instancia que sabemos que es tuya
-        const cloudServer = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
-        
-        const ap = urlParams.get('ga_ap_mac');
-        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
-        const session = urlParams.get('s');
-        const ssid = urlParams.get('ga_ssid');
-        const redir = urlParams.get('ga_continue_url') || "https://www.google.com";
+    // Leemos los parámetros que el AP inyecta en la URL de GitHub
+    const params = new URLSearchParams(window.location.search);
+    
+    // Llenamos los campos usando los nombres exactos que Cambium espera
+    document.getElementById('ga_ap_mac').value = params.get('ga_ap_mac');
+    document.getElementById('ga_cmac').value = params.get('ga_cmac') || params.get('ga_client_mac');
+    document.getElementById('ga_srvr').value = params.get('ga_srvr');
+    document.getElementById('ga_ssid').value = params.get('ga_ssid');
+    document.getElementById('s').value = params.get('s');
+    document.getElementById('ga_continue_url').value = params.get('ga_continue_url') || "https://www.google.com";
 
-        // 2. Construimos la URL apuntando SIEMPRE a la nube
-        const loginUrl = `https://${cloudServer}/guestportal/login?` + 
-                         `freeAccess=true&` +
-                         `ga_ap_mac=${encodeURIComponent(ap)}&` +
-                         `ga_cmac=${encodeURIComponent(client)}&` +
-                         `ga_srvr=${encodeURIComponent(cloudServer)}&` +
-                         `ga_ssid=${encodeURIComponent(ssid)}&` +
-                         `s=${encodeURIComponent(session)}&` +
-                         `ga_continue_url=${encodeURIComponent(redir)}`;
-
-        window.location.href = loginUrl;
-    });
+    // Si el AP nos indica otro servidor, actualizamos el destino del formulario
+    const apServer = params.get('ga_srvr');
+    if (apServer && apServer.includes('cambiumnetworks.com')) {
+        document.getElementById('portalForm').action = "https://" + apServer + "/guestportal/login";
+    }
 </script>
 
 </body>
 </html>
+
