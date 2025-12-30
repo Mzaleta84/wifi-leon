@@ -7,47 +7,48 @@
     <style>
         body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: white; padding: 2.5rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 380px; border-top: 5px solid #25478d; }
-        .btn-connect { background-color: #25478d; color: white; border: none; padding: 14px; width: 100%; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+        .btn-connect { background-color: #25478d; color: white; border: none; padding: 14px; width: 100%; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; text-decoration: none; display: inline-block; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2>Access Internet</h2>
-    <p>Presione el botón para conectar.</p>
+    <p>Presione el botón para conectar a la red.</p>
 
-    <form method="POST" id="loginForm" action="https://us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com/guestportal/login">
-        
-        <input type="hidden" name="freeAccess" value="true">
-        <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
-        <input type="hidden" name="ga_cmac" id="ga_cmac"> <input type="hidden" name="ga_srvr" id="ga_srvr">
-        <input type="hidden" name="ga_ssid" id="ga_ssid">
-        <input type="hidden" name="s" id="s"> <input type="hidden" name="ga_continue_url" id="ga_continue_url">
-        
-        <button type="submit" class="btn-connect">Connect</button>
-    </form>
+    <a href="#" id="connectLink" class="btn-connect">Connect</a>
 </div>
 
 <script>
-    // Leemos la URL que el AP le manda a GitHub
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Llenamos los campos con los nombres exactos del original
-    document.getElementById('ga_ap_mac').value = urlParams.get('ga_ap_mac');
-    document.getElementById('ga_cmac').value = urlParams.get('ga_cmac');
-    document.getElementById('ga_srvr').value = urlParams.get('ga_srvr');
-    document.getElementById('ga_ssid').value = urlParams.get('ga_ssid');
-    document.getElementById('s').value = urlParams.get('s'); // Capturamos el token de sesión
-    
-    // Si no hay URL de retorno, usamos Google
-    document.getElementById('ga_continue_url').value = urlParams.get('ga_continue_url') || "https://www.google.com";
+    document.getElementById('connectLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Recolectamos todos los parámetros originales
+        const ap = urlParams.get('ga_ap_mac');
+        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
+        const server = urlParams.get('ga_srvr') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+        const session = urlParams.get('s');
+        const ssid = urlParams.get('ga_ssid');
+        const redir = urlParams.get('ga_continue_url') || "https://www.google.com";
 
-    // Pequeño truco: si el AP nos dice qué servidor usar, actualizamos el action
-    const ga_srvr = urlParams.get('ga_srvr');
-    if (ga_srvr && ga_srvr.includes('cambiumnetworks.com')) {
-        document.getElementById('loginForm').action = "https://" + ga_srvr + "/guestportal/login";
-    }
+        // Construimos la URL de login con el método GET
+        // Usamos la URL de gestión que es la que procesa el acceso
+        const loginUrl = `https://${server}/guestportal/login?` + 
+                         `freeAccess=true&` +
+                         `ga_ap_mac=${encodeURIComponent(ap)}&` +
+                         `ga_cmac=${encodeURIComponent(client)}&` +
+                         `ga_srvr=${encodeURIComponent(server)}&` +
+                         `ga_ssid=${encodeURIComponent(ssid)}&` +
+                         `s=${encodeURIComponent(session)}&` +
+                         `ga_continue_url=${encodeURIComponent(redir)}`;
+
+        console.log("Redirigiendo a:", loginUrl);
+        window.location.href = loginUrl;
+    });
 </script>
 
 </body>
 </html>
+
