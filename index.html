@@ -5,58 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Cautivo - León 2026</title>
     <style>
-        body { margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #0084FF; color: white; text-align: center; }
+        /* Fuentes y Estilos Base */
+        @font-face { font-family: myAvenir; src: url(avenir.woff2); }
+        * { font-family: 'myAvenir', Arial, sans-serif; }
+
+        body { margin: 0; padding: 0; background-color: #3e6be8; color: white; text-align: center; }
         .container { width: 100%; max-width: 500px; margin: auto; padding: 20px; box-sizing: border-box; padding-bottom: 180px; }
-        .header img { width: 130px; margin-bottom: 10px; }
-        h1 { font-size: 1.8rem; text-transform: uppercase; margin: 0; line-height: 1.1; }
-        .sub-header { font-size: 1.1rem; font-weight: bold; margin-top: 5px; }
-        .status-icons { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
-        .info-section { font-size: 0.9rem; line-height: 1.5; margin: 20px 0; padding: 0 10px; }
-        .phone-block { font-size: 1.2rem; font-weight: bold; display: block; margin-top: 8px; border: 1px dashed white; padding: 5px; border-radius: 5px; }
-        .btn-access { background-color: white; color: #0084FF; border: none; border-radius: 30px; padding: 18px 35px; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100%; font-size: 1rem; }
         
-        /* MODAL ENCUESTA */
+        .header img { width: 80%; height: auto; margin-bottom: 10px; }
+        .status-icons { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
+        
+        /* Botón de Conexión */
+        .btn { background-color: #25478d; color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        
+        /* Secciones de Información */
+        .info-section { font-size: 0.9rem; line-height: 1.5; margin: 20px 0; padding: 0 10px; text-align: left; }
+        .phone-block { font-size: 1.2rem; font-weight: bold; display: block; margin-top: 8px; border: 1px dashed white; padding: 10px; border-radius: 5px; text-align: center; }
+
+        /* Modal de Encuesta */
         #surveyModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; color: #333; padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; text-align: left; overflow-y: auto; max-height: 90vh; }
-        .modal-content label { font-weight: bold; font-size: 0.85rem; color: #0084FF; }
-        .modal-content select { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 5px; background: #f9f9f9; }
-        .btn-submit { background: #20C073; color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .modal-content label { font-weight: bold; font-size: 0.9rem; color: #3e6be8; }
+        .modal-content select { width: 100%; padding: 12px; margin: 8px 0 15px 0; border: 1px solid #ccc; border-radius: 5px; }
+        .btn-submit { background: #20C073; color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
 
-        /* FOOTER */
+        /* Footer con Carrusel Animado */
         .footer { position: fixed; bottom: 0; width: 100%; z-index: 500; }
         .green-bar { background: #20C073; padding: 10px; font-weight: bold; font-size: 0.75rem; color: white; }
-        .white-bar { background: white; padding: 10px; border-top: 1px solid #ddd; }
-        .white-bar img { max-width: 90%; height: auto; max-height: 40px; }
+        .white-bar { background: white; padding: 10px; border-top: 1px solid #ddd; overflow: hidden; white-space: nowrap; }
+        
+        .imagecarousel { display: inline-flex; gap: 30px; animation: bannermove 25s linear infinite; }
+        .imagecarousel img { height: 35px; width: auto; }
+
+        @keyframes bannermove {
+            0% { transform: translateX(50%); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <img src="logo-leon.png" alt="León">
-        <h1>Servicio de Internet Gratuito</h1>
-        <div class="sub-header">EN PARQUES Y ESPACIOS PÚBLICOS</div>
+        <img src="captiveportal-banner.png" alt="León">
     </div>
 
     <div class="status-icons">
-        <img src="wifi-icon.png" width="70" alt="WiFi">
-        <img src="timer-icon.png" width="70" alt="50 min">
+        <img src="zona-wifi.png" width="130" alt="WiFi">
+        <img src="50minutos.png" width="130" alt="50 min">
     </div>
 
     <div class="info-section">
-        <p>Cada sesión se encuentra <b>limitada a 50 minutos</b>.</p>
-        <p>Reporte de fallas al: <span class="phone-block">477 429 74 46</span></p>
+        <p>Cada sesión tiene una <b>duración máxima de 50 minutos</b>. Al finalizar, podrás volver a conectarte después de 5 minutos.</p>
+        <p>Para utilizar el servicio de internet gratuito es necesario realizar un <b>registro previo</b>.</p>
     </div>
 
     <div id="connectSection" style="display:none;">
-        <button id="finalAuthBtn" class="btn-access">Acepto Condiciones y Conectar</button>
+        <a href="#" id="connectBtn" class="btn">ACEPTO CONDICIONES Y CONECTAR</a>
+    </div>
+
+    <div class="info-section">
+        <p style="text-align: center;">Para mayor información o reportar fallas:<br>
+            <span class="phone-block">477 429 74 46</span>
+        </p>
     </div>
 </div>
 
 <div id="surveyModal">
     <div class="modal-content">
-        <h2 style="color:#0084FF; margin-top:0; font-size: 1.2rem; text-align: center;">BREVE ENCUESTA CIUDADANA</h2>
-        <form id="googleSurvey" action="https://docs.google.com/forms/d/e/1FAIpQLScmM9i_9-1mThNTYMDmPZWDrbYvMvhrXducX65l2SSkF1rkxA/formResponse" method="POST" target="hidden_iframe" onsubmit="handleFormSubmit()">
+        <h2 style="color:#3e6be8; margin-top:0; font-size: 1.2rem; text-align: center;">REGISTRO DE USUARIO</h2>
+        <form id="googleSurvey" action="https://docs.google.com/forms/d/e/1FAIpQLScmM9i_9-1mThNTYMDmPZWDrbYvMvhrXducX65l2SSkF1rkxA/formResponse" method="POST" target="hidden_iframe">
             
             <label>Género:</label>
             <select name="entry.550879783" required>
@@ -102,68 +120,18 @@
             <input type="hidden" name="entry.1610266945" id="hidden_mac">
             <input type="hidden" name="entry.852007566" id="hidden_device">
 
-            <button type="submit" class="btn-submit">Enviar y Continuar</button>
+            <button type="submit" class="btn-submit" onclick="submitted=true;">ENVIAR Y CONTINUAR</button>
         </form>
     </div>
 </div>
 
 <div class="footer">
     <div class="green-bar">YO QUIERO A LEÓN VIVO Y CON MÁS PARQUES</div>
-    <div class="white-bar"><img src="logos-footer.png" alt="Logos"></div>
-</div>
+    <div class="white-bar">
+        <div class="imagecarousel">
+            <img src="chamba-modulo.png" alt="Chamba">
+            <img src="innovacion.png" alt="Innovación">
+            <img src="alee.png" alt="Ale">
+            <img src="free-wifi-leon.png" alt="Free WiFi">
+            <img src="chamba-modulo.png" alt="Chamba">
 
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-
-    window.onload = function() {
-        // Capturamos MAC para Google Forms
-        document.getElementById('hidden_mac').value = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac') || 'Captura Fallida';
-        document.getElementById('hidden_device').value = navigator.userAgent;
-
-        // Si ya contestó en esta sesión, mostramos botón de una vez
-        if (localStorage.getItem('encuesta_leon_final_v1') === 'true') {
-            document.getElementById('connectSection').style.display = "block";
-        } else {
-            document.getElementById('surveyModal').style.display = "flex";
-        }
-    };
-
-    function handleFormSubmit() {
-        localStorage.setItem('encuesta_leon_final_v1', 'true');
-        setTimeout(() => {
-            document.getElementById('surveyModal').style.display = "none";
-            document.getElementById('connectSection').style.display = "block";
-        }, 800);
-    }
-
-    // LÓGICA DE REDIRECCIÓN A BOLSA DE TRABAJO
-    document.getElementById('finalAuthBtn').addEventListener('click', function() {
-        const ap = urlParams.get('ga_ap_mac');
-        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
-        const session = urlParams.get('s');
-        const ssid = urlParams.get('ga_ssid');
-        let server = urlParams.get('ga_srvr');
-
-        if (!server || server.includes('192.168')) {
-            server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
-        }
-
-        // CAMBIO AQUÍ: Redirigimos a la bolsa de trabajo en lugar de 204
-        const successUrl = "https://empleo.leon.gob.mx";
-
-        const finalUrl = `https://${server}/guestportal/login?` + 
-                         `freeAccess=true&` +
-                         `ga_ap_mac=${encodeURIComponent(ap)}&` +
-                         `ga_cmac=${encodeURIComponent(client)}&` +
-                         `ga_srvr=${encodeURIComponent(server)}&` +
-                         `ga_ssid=${encodeURIComponent(ssid)}&` +
-                         `s=${encodeURIComponent(session)}&` +
-                         `ga_continue_url=${encodeURIComponent(successUrl)}`;
-
-        window.location.href = finalUrl;
-    });
-</script>
-</body>
-</html>
