@@ -27,15 +27,6 @@
     // --- 1. MEMORIA DE SEGURIDAD ---
     // Apenas carga la página, revisamos si hay datos en la URL. 
     // Si los hay, los guardamos en el teléfono (localStorage).
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.get('s')) {
-        localStorage.setItem('wifi_s', urlParams.get('s'));
-        localStorage.setItem('wifi_ap', urlParams.get('ga_ap_mac'));
-        localStorage.setItem('wifi_client', urlParams.get('ga_cmac') || urlParams.get('ga_client_mac'));
-        localStorage.setItem('wifi_ssid', urlParams.get('ga_ssid'));
-        localStorage.setItem('wifi_server', urlParams.get('ga_srvr'));
-    }
 
     document.getElementById('connectBtn').addEventListener('click', function(e) {
         e.preventDefault();
