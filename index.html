@@ -145,15 +145,24 @@
 
 <script>
     var submitted = false;
+    // Capturamos los parámetros de la URL inmediatamente al cargar la página
     const urlParams = new URLSearchParams(window.location.search);
+    
+    // Almacenamos los datos en variables constantes para que no se pierdan
+    const session_id = urlParams.get('s');
+    const ap_mac = urlParams.get('ga_ap_mac');
+    const client_mac = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
+    const ssid_name = urlParams.get('ga_ssid');
+    let server_name = urlParams.get('ga_srvr');
 
     window.onload = function() {
-        // Captura de datos iniciales
-        document.getElementById('hidden_mac').value = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac') || 'No capturada';
+        // Llenar campos ocultos para Google Forms
+        document.getElementById('hidden_mac').value = client_mac || 'No capturada';
         document.getElementById('hidden_device').value = navigator.userAgent;
 
-        // Comprobación de registro previo en el dispositivo
+        // Mostrar u ocultar encuesta
         if (localStorage.getItem('leon_wifi_reg_v2') === 'true') {
+            document.getElementById('surveyModal').style.display = "none";
             document.getElementById('connectSection').style.display = "block";
         } else {
             document.getElementById('surveyModal').style.display = "flex";
@@ -166,35 +175,37 @@
         document.getElementById('connectSection').style.display = "block";
     }
 
-    // EL MOTOR DE CONEXIÓN CON REDIRECCIÓN A EMPLEO
     document.getElementById('connectBtn').addEventListener('click', function(e) {
         e.preventDefault();
-        
-        const ap = urlParams.get('ga_ap_mac');
-        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
-        const session = urlParams.get('s');
-        const ssid = urlParams.get('ga_ssid');
-        let server = urlParams.get('ga_srvr');
 
-        // Fallback si el server no viene en la URL
-        if (!server || server.includes('192.168')) {
-            server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+        // Si por alguna razón el servidor no viene, usamos el que ya sabemos que funciona
+        let finalServer = server_name;
+        if (!finalServer || finalServer.includes('192.168') || finalServer === "null") {
+            finalServer = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
         }
 
-        // URL de destino final
+        // VALIDACIÓN CRÍTICA: Si session_id es null, avisamos o intentamos recuperar
+        if (!session_id || session_id === "null") {
+            alert("Error de sesión: Por favor, desconéctate y vuelve a unirte a la red WiFi.");
+            return;
+        }
+
         const redir = "https://empleo.leon.gob.mx";
 
-        const finalUrl = `https://${server}/guestportal/login?` + 
-                         `freeAccess=true&` +
-                         `ga_ap_mac=${encodeURIComponent(ap)}&` +
-                         `ga_cmac=${encodeURIComponent(client)}&` +
-                         `ga_srvr=${encodeURIComponent(server)}&` +
-                         `ga_ssid=${encodeURIComponent(ssid)}&` +
-                         `s=${encodeURIComponent(session)}&` +
-                         `ga_continue_url=${encodeURIComponent(redir)}`;
+        // Construcción manual de la URL asegurando que nada sea null
+        const finalUrl = "https://" + finalServer + "/guestportal/login?" + 
+                         "freeAccess=true" +
+                         "&ga_ap_mac=" + encodeURIComponent(ap_mac) +
+                         "&ga_cmac=" + encodeURIComponent(client_mac) +
+                         "&ga_srvr=" + encodeURIComponent(finalServer) +
+                         "&ga_ssid=" + encodeURIComponent(ssid_name) +
+                         "&s=" + encodeURIComponent(session_id) +
+                         "&ga_continue_url=" + encodeURIComponent(redir);
 
+        console.log("Redirigiendo a:", finalUrl);
         window.location.href = finalUrl;
     });
 </script>
 </body>
 </html>
+
