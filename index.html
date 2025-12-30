@@ -3,51 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Wi-Fi</title>
+    <title>Acceso Wi-Fi</title>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; border-top: 4px solid #25478d; }
-        .btn { background-color: #25478d; color: white; border: none; padding: 15px; width: 100%; border-radius: 3px; font-size: 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn:hover { background-color: #1a3263; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 320px; border-top: 6px solid #25478d; }
+        .btn { background-color: #25478d; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; box-sizing: border-box; }
+        .btn:active { transform: scale(0.98); }
+        #loader { display: none; margin-top: 15px; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color: #424242;">Bienvenido</h2>
-    <p style="color: #666; margin-bottom: 25px;">Haga clic para acceder a Internet</p>
-
-    <form method="POST" id="portalForm" action="https://us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com/guestportal/login">
-        
-        <input type="hidden" name="freeAccess" value="true">
-        <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
-        <input type="hidden" name="ga_cmac" id="ga_cmac">
-        <input type="hidden" name="ga_srvr" id="ga_srvr">
-        <input type="hidden" name="ga_ssid" id="ga_ssid">
-        <input type="hidden" name="s" id="s">
-        <input type="hidden" name="ga_continue_url" id="ga_continue_url">
-        
-        <button type="submit" class="btn">Conectar</button>
-    </form>
+    <h2 style="color:#25478d">Bienvenido</h2>
+    <p>Haz clic para activar tu acceso a Internet.</p>
+    
+    <a href="#" id="connectBtn" class="btn">CONECTAR AHORA</a>
+    
+    <div id="loader">Procesando acceso...</div>
 </div>
 
 <script>
-    // Leemos los parámetros que el AP inyecta en la URL de GitHub
-    const params = new URLSearchParams(window.location.search);
-    
-    // Llenamos los campos usando los nombres exactos que Cambium espera
-    document.getElementById('ga_ap_mac').value = params.get('ga_ap_mac');
-    document.getElementById('ga_cmac').value = params.get('ga_cmac') || params.get('ga_client_mac');
-    document.getElementById('ga_srvr').value = params.get('ga_srvr');
-    document.getElementById('ga_ssid').value = params.get('ga_ssid');
-    document.getElementById('s').value = params.get('s');
-    document.getElementById('ga_continue_url').value = params.get('ga_continue_url') || "https://www.google.com";
+    document.getElementById('connectBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('loader').style.display = 'block';
+        this.style.opacity = '0.5';
+        this.style.pointerEvents = 'none';
 
-    // Si el AP nos indica otro servidor, actualizamos el destino del formulario
-    const apServer = params.get('ga_srvr');
-    if (apServer && apServer.includes('cambiumnetworks.com')) {
-        document.getElementById('portalForm').action = "https://" + apServer + "/guestportal/login";
-    }
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Extraemos todos los datos que el AP nos pasó
+        const ap = urlParams.get('ga_ap_mac');
+        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
+        const session = urlParams.get('s');
+        const ssid = urlParams.get('ga_ssid');
+        const server = urlParams.get('ga_srvr') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+        const redir = urlParams.get('ga_continue_url') || "https://www.google.com";
+
+        // Construimos la URL de login mediante método GET (directo en la URL)
+        // Esto evita que CloudFront dispare el error 403 Forbidden
+        const finalUrl = `https://${server}/guestportal/login?` + 
+                         `freeAccess=true&` +
+                         `ga_ap_mac=${encodeURIComponent(ap)}&` +
+                         `ga_cmac=${encodeURIComponent(client)}&` +
+                         `ga_srvr=${encodeURIComponent(server)}&` +
+                         `ga_ssid=${encodeURIComponent(ssid)}&` +
+                         `s=${encodeURIComponent(session)}&` +
+                         `ga_continue_url=${encodeURIComponent(redir)}`;
+
+        // Saltamos directamente a la validación de Cambium
+        window.location.href = finalUrl;
+    });
 </script>
 
 </body>
