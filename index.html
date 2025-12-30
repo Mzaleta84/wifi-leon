@@ -13,7 +13,7 @@
         .status-icons { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
         .info-section { font-size: 0.9rem; line-height: 1.5; margin: 20px 0; padding: 0 10px; }
         .phone-block { font-size: 1.2rem; font-weight: bold; display: block; margin-top: 8px; border: 1px dashed white; padding: 5px; border-radius: 5px; }
-        .btn-access { background-color: white; color: #0084FF; border: none; border-radius: 30px; padding: 15px 35px; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100%; }
+        .btn-access { background-color: white; color: #0084FF; border: none; border-radius: 30px; padding: 18px 35px; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100%; font-size: 1rem; }
         
         /* MODAL ENCUESTA */
         #surveyModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
@@ -118,12 +118,12 @@
     const urlParams = new URLSearchParams(window.location.search);
 
     window.onload = function() {
-        // Capturamos datos para Google Forms
-        document.getElementById('hidden_mac').value = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac') || 'No capturada';
+        // Capturamos MAC para Google Forms
+        document.getElementById('hidden_mac').value = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac') || 'Captura Fallida';
         document.getElementById('hidden_device').value = navigator.userAgent;
 
-        // Lógica de visualización
-        if (localStorage.getItem('encuesta_leon_v2') === 'true') {
+        // Si ya contestó en esta sesión, mostramos botón de una vez
+        if (localStorage.getItem('encuesta_leon_final_v1') === 'true') {
             document.getElementById('connectSection').style.display = "block";
         } else {
             document.getElementById('surveyModal').style.display = "flex";
@@ -131,15 +131,14 @@
     };
 
     function handleFormSubmit() {
-        // Marcamos como completada y mostramos el botón de acceso real
-        localStorage.setItem('encuesta_leon_v2', 'true');
+        localStorage.setItem('encuesta_leon_final_v1', 'true');
         setTimeout(() => {
             document.getElementById('surveyModal').style.display = "none";
             document.getElementById('connectSection').style.display = "block";
-        }, 1000);
+        }, 800);
     }
 
-    // EL MOTOR DE ACCESO (Lo que reventamos hoy y funcionó)
+    // LÓGICA DE REDIRECCIÓN A BOLSA DE TRABAJO
     document.getElementById('finalAuthBtn').addEventListener('click', function() {
         const ap = urlParams.get('ga_ap_mac');
         const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
@@ -151,7 +150,8 @@
             server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
         }
 
-        const successUrl = "http://connectivitycheck.gstatic.com/generate_204";
+        // CAMBIO AQUÍ: Redirigimos a la bolsa de trabajo en lugar de 204
+        const successUrl = "https://empleo.leon.gob.mx";
 
         const finalUrl = `https://${server}/guestportal/login?` + 
                          `freeAccess=true&` +
@@ -167,3 +167,4 @@
 </script>
 </body>
 </html>
+
