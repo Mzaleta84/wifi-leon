@@ -3,51 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Wi-Fi Clientes</title>
+    <title>Portal Wi-Fi | Acceso Clientes</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: white; padding: 40px; border-radius: 12px; shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
-        img { max-width: 150px; margin-bottom: 20px; }
-        h2 { color: #333; margin-bottom: 10px; }
-        p { color: #666; font-size: 14px; margin-bottom: 30px; }
-        button { background-color: #0052cc; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #003d99; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; margin: 0; 
+        }
+        .container { 
+            background: white; padding: 40px; border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            text-align: center; width: 90%; max-width: 400px; 
+        }
+        h2 { color: #333; margin-bottom: 10px; font-size: 24px; }
+        p { color: #666; font-size: 15px; line-height: 1.5; margin-bottom: 30px; }
+        .btn-connect { 
+            background-color: #0052cc; color: white; border: none; 
+            padding: 15px; width: 100%; border-radius: 8px; 
+            font-size: 18px; font-weight: 600; cursor: pointer; 
+            transition: background 0.3s ease; 
+        }
+        .btn-connect:hover { background-color: #003d99; }
+        .footer { margin-top: 20px; font-size: 12px; color: #999; }
     </style>
 </head>
 <body>
 
-<div class="login-box">
-    <h2>Bienvenido al Wi-Fi</h2>
-    <p>Al hacer clic en el botón, aceptas nuestros términos de uso y condiciones.</p>
+<div class="container">
+    <h2>Conexión Wi-Fi</h2>
+    <p>Bienvenido. Al hacer clic en el botón de abajo, obtendrás acceso gratuito a nuestra red.</p>
 
     <form method="POST" id="portalForm" action="https://cloud.cambiumnetworks.com/guestportal/login">
         <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
         <input type="hidden" name="ga_client_mac" id="ga_client_mac">
-        <input type="hidden" name="ga_continue_url" id="ga_continue_url">
         <input type="hidden" name="ga_srvr" id="ga_srvr">
+        <input type="hidden" name="ga_continue_url" id="ga_continue_url">
         
-        <button type="submit" id="connectBtn">CONECTAR AHORA</button>
+        <button type="submit" class="btn-connect" id="btnConnect">CONECTAR AHORA</button>
     </form>
+
+    <div class="footer">
+        © 2025 - Servicio de Internet Gestionado
+    </div>
 </div>
 
 <script>
-    // Función para obtener parámetros de la URL (Query Strings)
+    // 1. Obtener los parámetros de la URL enviados por el Access Point
     const urlParams = new URLSearchParams(window.location.search);
 
-    // Mapeamos los datos que envía el Access Point a los inputs del formulario
-    document.getElementById('ga_ap_mac').value = urlParams.get('ga_ap_mac');
-    document.getElementById('ga_client_mac').value = urlParams.get('ga_client_mac');
-    document.getElementById('ga_srvr').value = urlParams.get('ga_srvr');
-    
-    // Si no hay URL de redirección, lo enviamos a Google por defecto
-    document.getElementById('ga_continue_url').value = urlParams.get('ga_continue_url') || "https://www.google.com";
+    // 2. Asignar los valores a los campos ocultos del formulario
+    const apMac = urlParams.get('ga_ap_mac');
+    const clientMac = urlParams.get('ga_client_mac');
+    const server = urlParams.get('ga_srvr');
+    const redirectUrl = urlParams.get('ga_continue_url') || "https://www.google.com";
 
-    // Debug opcional en consola para ver que capturó los datos
-    console.log("Datos capturados:", {
-        ap: urlParams.get('ga_ap_mac'),
-        client: urlParams.get('ga_client_mac')
-    });
+    document.getElementById('ga_ap_mac').value = apMac;
+    document.getElementById('ga_client_mac').value = clientMac;
+    document.getElementById('ga_srvr').value = server;
+    document.getElementById('ga_continue_url').value = redirectUrl;
+
+    // 3. Validación de seguridad (opcional)
+    if (!apMac || !clientMac) {
+        console.warn("Advertencia: No se detectaron datos del Access Point. El botón podría fallar.");
+        // Si quieres que el botón se desactive si no hay datos, descomenta la línea de abajo:
+        // document.getElementById('btnConnect').disabled = true;
+    }
 </script>
 
 </body>
 </html>
+
