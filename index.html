@@ -3,54 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wi-Fi Access</title>
+    <title>Acceso Wi-Fi</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 320px; border-top: 6px solid #25478d; }
-        .btn { background-color: #25478d; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; }
+        .btn { background-color: #25478d; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; box-sizing: border-box; }
+        .btn:active { transform: scale(0.98); }
+        #loader { display: none; margin-top: 15px; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color:#25478d">Conexión Lista</h2>
-    <p>Haz clic para finalizar el acceso.</p>
-    <a href="#" id="connectBtn" class="btn">ACCEDER AHORA</a>
+    <h2 style="color:#25478d">Bienvenido</h2>
+    <p>Haz clic para activar tu acceso a Internet.</p>
+    
+    <a href="#" id="connectBtn" class="btn">CONECTAR AHORA</a>
+    
+    <div id="loader">Procesando acceso...</div>
 </div>
 
 <script>
     document.getElementById('connectBtn').addEventListener('click', function(e) {
         e.preventDefault();
+        document.getElementById('loader').style.display = 'block';
+        this.style.opacity = '0.5';
+        this.style.pointerEvents = 'none';
+
         const urlParams = new URLSearchParams(window.location.search);
         
-        // Parámetros capturados
+        // Extraemos todos los datos que el AP nos pasó
         const ap = urlParams.get('ga_ap_mac');
         const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
         const session = urlParams.get('s');
         const ssid = urlParams.get('ga_ssid');
-        // Si el servidor es 192.168.x.x, lo cambiamos por el nombre DNS para evitar el error de certificado
-        let server = urlParams.get('ga_srvr');
-        if (!server || server.includes('192.168')) {
-            server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
-        }
-        const redir = urlParams.get('ga_continue_url') || "http://connectivitycheck.gstatic.com/generate_204";
+        const server = urlParams.get('ga_srvr') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+        const redir = urlParams.get('ga_continue_url') || "https://www.google.com";
 
-        // IMPORTANTE: Cambiamos a HTTP (sin S) para la validación inicial 
-        // si el certificado sigue dando problemas, o forzamos el subdominio guest.
-        const finalUrl = https://${server}/guestportal/login? + 
-                         freeAccess=true& +
-                         ga_ap_mac=${encodeURIComponent(ap)}& +
-                         ga_cmac=${encodeURIComponent(client)}& +
-                         ga_srvr=${encodeURIComponent(server)}& +
-                         ga_ssid=${encodeURIComponent(ssid)}& +
-                         s=${encodeURIComponent(session)}& +
-                         ga_continue_url=${encodeURIComponent(redir)};
+        // Construimos la URL de login mediante método GET (directo en la URL)
+        // Esto evita que CloudFront dispare el error 403 Forbidden
+        const finalUrl = `https://${server}/guestportal/login?` + 
+                         `freeAccess=true&` +
+                         `ga_ap_mac=${encodeURIComponent(ap)}&` +
+                         `ga_cmac=${encodeURIComponent(client)}&` +
+                         `ga_srvr=${encodeURIComponent(server)}&` +
+                         `ga_ssid=${encodeURIComponent(ssid)}&` +
+                         `s=${encodeURIComponent(session)}&` +
+                         `ga_continue_url=${encodeURIComponent(redir)}`;
 
+        // Saltamos directamente a la validación de Cambium
         window.location.href = finalUrl;
     });
 </script>
 
 </body>
 </html>
-
-
