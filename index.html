@@ -3,83 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Acceso Wi-Fi</title>
+    <title>Acceso Wi-Fi</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 350px;
-        }
-        h2 { color: #333; margin-bottom: 20px; }
-        p { color: #666; font-size: 14px; margin-bottom: 30px; }
-        .btn-connect {
-            background-color: #0052cc;
-            color: white;
-            border: none;
-            padding: 14px;
-            width: 100%;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-connect:hover { background-color: #003d99; }
-        .footer { margin-top: 20px; font-size: 11px; color: #aaa; }
+        body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; border-top: 5px solid #25478d; }
+        h2 { color: #424242; font-size: 24px; }
+        .btn-primary { background-color: #25478d; color: white; border: none; padding: 12px 30px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-primary:hover { background-color: #1a3263; }
     </style>
 </head>
-<body>
+<body class="cp-body">
 
-<div class="login-card">
-    <h2>Conexión Wi-Fi</h2>
-    <p>Haz clic en el botón para obtener acceso a internet de alta velocidad.</p>
+<div class="card">
+    <h2 id="title">Access Internet</h2>
+    <p>Presione el botón para conectar</p>
 
-    <form method="POST" id="portalForm">
+    <form method="POST" id="loginForm">
+        <input type="hidden" name="freeAccess" value="true">
         <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
-        <input type="hidden" name="ga_client_mac" id="ga_client_mac">
+        <input type="hidden" name="ga_client_mac" id="ga_cmac">
         <input type="hidden" name="ga_srvr" id="ga_srvr">
         <input type="hidden" name="ga_continue_url" id="ga_continue_url">
         
-        <button type="submit" class="btn-connect">CONECTAR AHORA</button>
+        <button type="submit" id="freeLogin" class="btn btn-primary">Connect</button>
     </form>
-
-    <div class="footer">Powered by Cambium Networks & GitHub</div>
 </div>
 
 <script>
-    // 1. Obtener los parámetros que el Access Point inyecta en la URL
+    // 1. Extraer los datos de la URL (Lo que hace common.js)
     const urlParams = new URLSearchParams(window.location.search);
     
-    // 2. Detectar el servidor (ga_srvr). Si no existe, usamos tu instancia por defecto
-    const detectedServer = urlParams.get('ga_srvr') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
-    
-    // 3. Configurar el destino del formulario (Login de la nube)
-    const form = document.getElementById('portalForm');
-    form.action = "https://" + detectedServer + "/guestportal/login";
+    // Cambium usa nombres específicos: ga_ap_mac, ga_cmac (en lugar de client_mac en algunos casos)
+    const data = {
+        ap: urlParams.get('ga_ap_mac'),
+        client: urlParams.get('ga_cmac') || urlParams.get('ga_client_mac'),
+        server: urlParams.get('ga_srvr') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com",
+        redirect: urlParams.get('ga_continue_url') || "https://www.google.com"
+    };
 
-    // 4. Llenar los campos ocultos con la información de la URL
-    document.getElementById('ga_ap_mac').value = urlParams.get('ga_ap_mac');
-    document.getElementById('ga_client_mac').value = urlParams.get('ga_client_mac');
-    document.getElementById('ga_srvr').value = detectedServer;
-    
-    // Si no hay URL de redirección, lo enviamos a Google después del login
-    document.getElementById('ga_continue_url').value = urlParams.get('ga_continue_url') || "https://www.google.com";
+    // 2. Llenar el formulario
+    document.getElementById('ga_ap_mac').value = data.ap;
+    document.getElementById('ga_cmac').value = data.client;
+    document.getElementById('ga_srvr').value = data.server;
+    document.getElementById('ga_continue_url').value = data.redirect;
 
-    // Debug opcional en consola
-    console.log("Enviando login a: " + form.action);
+    // 3. Configurar el destino (La instancia que encontraste)
+    // El "post" en tu index original apunta a us-e1-guest... pero usaremos tu instancia de gestión
+    const form = document.getElementById('loginForm');
+    form.action = "https://" + data.server + "/guestportal/login";
+
+    // 4. Lógica de OneClick: Si falla el envío tradicional, avisar
+    form.onsubmit = function() {
+        console.log("Intentando conectar a través de: " + data.server);
+        if(!data.ap || !data.client) {
+            alert("Error: Faltan parámetros de red (MAC). Asegúrate de que el AP tenga 'Prefix Query Strings' activo.");
+            return false;
+        }
+        return true;
+    };
 </script>
 
 </body>
