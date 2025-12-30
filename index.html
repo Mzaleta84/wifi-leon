@@ -31,15 +31,17 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Llenamos los datos que el AP envía en la URL
+    // Capturamos datos
     document.getElementById('ga_ap_mac').value = urlParams.get('ga_ap_mac');
     document.getElementById('ga_client_mac').value = urlParams.get('ga_client_mac');
     document.getElementById('ga_srvr').value = urlParams.get('ga_srvr');
-    document.getElementById('ga_continue_url').value = urlParams.get('ga_continue_url') || "https://www.google.com";
+    document.getElementById('ga_Qv').value = urlParams.get('ga_Qv');
 
-    // Debug para que veas en la consola si los datos llegaron
-    console.log("AP MAC:", urlParams.get('ga_ap_mac'));
+    // CONFIGURACIÓN LOCAL: El POST va directo al AP
+    // Usamos la IP de redirección estándar de Cambium (1.1.1.1)
+    document.getElementById('portalForm').action = "http://1.1.1.1/cgi-bin/hotspot_login.cgi";
 </script>
 
 </body>
 </html>
+
