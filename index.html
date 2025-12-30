@@ -1,76 +1,21 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi León - Acceso</title>
-    <style>
-        body { 
-            margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; 
-            background-color: #0084FF; color: white; 
-            display: flex; justify-content: center; align-items: center; height: 100vh;
-        }
-        .portal-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            padding: 40px 30px;
-            border-radius: 20px;
-            width: 85%;
-            max-width: 350px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        h1 { font-size: 2rem; margin: 0 0 10px 0; }
-        p { font-size: 1rem; margin-bottom: 30px; line-height: 1.4; opacity: 0.9; }
-        .btn-connect {
-            background-color: #ffffff;
-            color: #0084FF;
-            border: none;
-            border-radius: 50px;
-            padding: 18px 0;
-            width: 100%;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .btn-connect:active { transform: scale(0.96); }
-    </style>
-</head>
-<body>
-
-<div class="portal-card">
-    <h1>Internet</h1>
-    <p>Bienvenido al servicio gratuito.<br>Presiona el botón para conectar.</p>
-
-    <form id="cambiumForm" method="post" action="">
-        <input type="hidden" name="ga_srvr" id="ga_srvr">
-        <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
-        <input type="hidden" name="ga_cm_mac" id="ga_cm_mac">
-        <input type="hidden" name="ga_nas_id" id="ga_nas_id">
-        <input type="hidden" name="ga_ssid" id="ga_ssid">
-        <input type="hidden" name="ga_success_url" value="https://empleo.leon.gob.mx/">
-        
-        <button type="submit" class="btn-connect">ACEPTAR</button>
-    </form>
-</div>
+<form method="POST" id="loginForm">
+    <input type="hidden" name="ga_ap_mac" id="ap_mac">
+    <input type="hidden" name="ga_client_mac" id="client_mac">
+    <input type="hidden" name="ga_Qv" id="qv">
+    
+    <button type="submit">Conectar a Internet</button>
+</form>
 
 <script>
-    window.onload = function() {
-        const params = new URLSearchParams(window.location.search);
-        
-        // Prioridad: 1. Lo que mande el AP, 2. La IP del Hotspot que configuraste
-        const server = params.get('ga_srvr') || "1.1.1.1"; 
-
-        document.getElementById('ga_srvr').value = server;
-        document.getElementById('ga_ap_mac').value = params.get('ga_ap_mac') || "";
-        document.getElementById('ga_cm_mac').value = params.get('ga_cm_mac') || "";
-        document.getElementById('ga_nas_id').value = params.get('ga_nas_id') || "";
-        document.getElementById('ga_ssid').value = params.get('ga_ssid') || "";
-
-        // Usamos http:// porque configuraste "Redirect: HTTP-only"
-        document.getElementById('cambiumForm').action = "http://" + server + "/cgi-bin/login";
-    };
+    // Script simple para leer los parámetros de la URL y configurar el Form
+    const urlParams = new URLSearchParams(window.location.search);
+    const apIp = urlParams.get('ga_srvr'); 
+    
+    // El POST debe ir a la IP del AP que nos redirigió
+    document.getElementById('loginForm').action = `http://${apIp}:880/cgi-bin/hotspot_login.cgi`;
+    
+    // Llenar los campos ocultos
+    document.getElementById('ap_mac').value = urlParams.get('ga_ap_mac');
+    document.getElementById('client_mac').value = urlParams.get('ga_client_mac');
+    document.getElementById('qv').value = urlParams.get('ga_Qv');
 </script>
-</body>
-</html>
