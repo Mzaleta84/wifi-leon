@@ -1,30 +1,10 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Wi-Fi</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 350px; }
-        h2 { color: #1c1e21; margin-bottom: 1rem; }
-        button { background-color: #0052cc; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
-        button:hover { background-color: #003d99; }
-    </style>
-</head>
-<body>
-
 <div class="card">
     <h2>Bienvenido</h2>
-    <p>Presiona el botón para navegar</p>
-
-    <form method="POST" id="portalForm" action="https://us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com/guestportal/login">
+    <form method="POST" id="portalForm" action="">
         <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
         <input type="hidden" name="ga_client_mac" id="ga_client_mac">
         <input type="hidden" name="ga_srvr" id="ga_srvr">
-        <input type="hidden" name="ga_continue_url" id="ga_continue_url">
-        
-        <button type="submit">CONECTAR</button>
+        <input type="hidden" name="ga_Qv" id="ga_Qv"> <button type="submit">CONECTAR</button>
     </form>
 </div>
 
@@ -41,7 +21,3 @@
     // Usamos la IP de redirección estándar de Cambium (1.1.1.1)
     document.getElementById('portalForm').action = "http://1.1.1.1/cgi-bin/hotspot_login.cgi";
 </script>
-
-</body>
-</html>
-
