@@ -3,215 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Cautivo - León 2026</title>
+    <title>Wi-Fi Access</title>
     <style>
-        /* Tipografía y Estilos Generales */
-        @font-face { font-family: myAvenir; src: url(avenir.woff2); }
-        * { font-family: 'myAvenir', Arial, sans-serif; }
-
-        body { margin: 0; padding: 0; background-color: #3e6be8; color: white; text-align: center; }
-        .container { width: 100%; max-width: 500px; margin: auto; padding: 20px; box-sizing: border-box; padding-bottom: 180px; }
-        
-        .header img { width: 85%; height: auto; margin-bottom: 15px; }
-        .status-icons { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
-        .status-icons img { width: 130px; height: auto; }
-
-        /* Botón de Conexión Final */
-        .btn { background-color: #25478d; color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        
-        .info-section { font-size: 0.9rem; line-height: 1.5; margin: 20px 0; padding: 0 10px; text-align: left; }
-        .phone-block { font-size: 1.2rem; font-weight: bold; display: block; margin-top: 8px; border: 1px dashed white; padding: 10px; border-radius: 5px; text-align: center; }
-
-        /* Modal de Encuesta */
-        #surveyModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; color: #333; padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; text-align: left; overflow-y: auto; max-height: 90vh; }
-        .modal-content h2 { color: #3e6be8; margin-top: 0; font-size: 1.2rem; text-align: center; }
-        .modal-content label { font-weight: bold; font-size: 0.85rem; color: #666; }
-        .modal-content select { width: 100%; padding: 12px; margin: 8px 0 15px 0; border: 1px solid #ccc; border-radius: 5px; background: #fdfdfd; }
-        .btn-submit { background: #20C073; color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-
-        /* Footer y Carrusel */
-        .footer { position: fixed; bottom: 0; width: 100%; z-index: 500; }
-        .green-bar { background: #20C073; padding: 10px; font-weight: bold; font-size: 0.75rem; color: white; }
-        .white-bar { background: white; padding: 12px; border-top: 1px solid #ddd; overflow: hidden; white-space: nowrap; }
-        
-        .imagecarousel { display: inline-flex; gap: 40px; animation: bannermove 25s linear infinite; }
-        .imagecarousel img { height: 35px; width: auto; }
-
-        @keyframes bannermove {
-            0% { transform: translateX(30%); }
-            100% { transform: translateX(-100%); }
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 320px; border-top: 6px solid #25478d; }
+        .btn { background-color: #25478d; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <img src="captiveportal-banner.png" alt="León">
-    </div>
-
-    <div class="status-icons">
-        <img src="zona-wifi.png" alt="WiFi">
-        <img src="50minutos.png" alt="50 min">
-    </div>
-
-    <div class="info-section">
-        <p>Cada sesión tiene una <b>duración máxima de 50 minutos</b>. Al finalizar, podrás volver a conectarte después de 5 minutos.</p>
-        <p>Para utilizar el servicio es necesario realizar un <b>registro previo</b>.</p>
-    </div>
-
-    <div id="connectSection" style="display:none;">
-        <a href="#" id="connectBtn" class="btn">ACEPTO CONDICIONES Y CONECTAR</a>
-    </div>
-
-    <div class="info-section">
-        <p style="text-align: center;">Reporte de fallas:<br>
-            <span class="phone-block">477 429 74 46</span>
-        </p>
-    </div>
+<div class="card">
+    <h2 style="color:#25478d">Conexión Lista</h2>
+    <p>Haz clic para finalizar el acceso.</p>
+    <a href="#" id="connectBtn" class="btn">ACCEDER AHORA</a>
 </div>
-
-<div id="surveyModal">
-    <div class="modal-content">
-        <h2>REGISTRO DE USUARIO</h2>
-        <form id="googleSurvey" action="https://docs.google.com/forms/d/e/1FAIpQLScmM9i_9-1mThNTYMDmPZWDrbYvMvhrXducX65l2SSkF1rkxA/formResponse" method="POST" target="hidden_iframe">
-            
-            <label>Género:</label>
-            <select name="entry.550879783" required>
-                <option value="">Selecciona...</option>
-                <option value="Hombre">Hombre</option>
-                <option value="Mujer">Mujer</option>
-                <option value="No quiero decirlo">No quiero decirlo</option>
-            </select>
-
-            <label>Rango de edad:</label>
-            <select name="entry.1118154402" required>
-                <option value="">Selecciona...</option>
-                <option value="Menos de 18 años">Menos de 18 años</option>
-                <option value="18-25 años">18-25 años</option>
-                <option value="26-35 años">26-35 años</option>
-                <option value="36-45 años">36-45 años</option>
-                <option value="46-55 años">46-55 años</option>
-                <option value="56-64 años">56-64 años</option>
-                <option value="65 y más">65 y más</option>
-            </select>
-
-            <label>Estado civil:</label>
-            <select name="entry.441314420" required>
-                <option value="">Selecciona...</option>
-                <option value="Soltero(a)">Soltero(a)</option>
-                <option value="Casado(a)">Casado(a)</option>
-                <option value="Divorciado(a)">Divorciado(a)</option>
-                <option value="Viudo(a)">Viudo(a)</option>
-                <option value="Unión libre">Unión libre</option>
-            </select>
-
-            <label>Nivel de estudios:</label>
-            <select name="entry.38432281" required>
-                <option value="">Selecciona...</option>
-                <option value="Primaria">Primaria</option>
-                <option value="Secundaria">Secundaria</option>
-                <option value="Preparatoria o técnico">Preparatoria o técnico</option>
-                <option value="Técnico Superior universitario">Técnico Superior universitario</option>
-                <option value="Universidad">Universidad</option>
-                <option value="Sin estudios">Sin estudios</option>
-            </select>
-
-            <input type="hidden" name="entry.1610266945" id="hidden_mac">
-            <input type="hidden" name="entry.852007566" id="hidden_device">
-
-            <button type="submit" class="btn-submit" onclick="submitted=true;">ENVIAR Y CONTINUAR</button>
-        </form>
-    </div>
-</div>
-
-<div class="footer">
-    <div class="green-bar">YO QUIERO A LEÓN VIVO Y CON MÁS PARQUES</div>
-    <div class="white-bar">
-        <div class="imagecarousel">
-            <img src="chamba-modulo.png" alt="Logo">
-            <img src="innovacion.png" alt="Logo">
-            <img src="alee.png" alt="Logo">
-            <img src="free-wifi-leon.png" alt="Logo">
-            <img src="chamba-modulo.png" alt="Logo">
-            <img src="innovacion.png" alt="Logo">
-            <img src="alee.png" alt="Logo">
-            <img src="free-wifi-leon.png" alt="Logo">
-        </div>
-    </div>
-</div>
-
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted) { finishSurvey(); }"></iframe>
 
 <script>
-    var submitted = false;
-    const urlParams = new URLSearchParams(window.location.search);
-
-    // PERSISTENCIA DE SESIÓN: Guardar apenas carga la página
-    if (urlParams.get('s')) {
-        sessionStorage.setItem('cambium_s', urlParams.get('s'));
-        sessionStorage.setItem('cambium_ap', urlParams.get('ga_ap_mac'));
-        sessionStorage.setItem('cambium_client', urlParams.get('ga_cmac') || urlParams.get('ga_client_mac'));
-        sessionStorage.setItem('cambium_server', urlParams.get('ga_srvr'));
-        sessionStorage.setItem('cambium_ssid', urlParams.get('ga_ssid'));
-    }
-
-    window.onload = function() {
-        // Datos para Google Forms (del almacenamiento de sesión)
-        document.getElementById('hidden_mac').value = sessionStorage.getItem('cambium_client') || 'No detectada';
-        document.getElementById('hidden_device').value = navigator.userAgent;
-
-        // Mostrar u ocultar encuesta (localStorage para persistencia larga)
-        if (localStorage.getItem('leon_reg_v3') === 'true') {
-            document.getElementById('surveyModal').style.display = "none";
-            document.getElementById('connectSection').style.display = "block";
-        } else {
-            document.getElementById('surveyModal').style.display = "flex";
-        }
-    };
-
-    function finishSurvey() {
-        localStorage.setItem('leon_reg_v3', 'true');
-        document.getElementById('surveyModal').style.display = "none";
-        document.getElementById('connectSection').style.display = "block";
-    }
-
-    // MOTOR DE CONEXIÓN ROBUSTO
     document.getElementById('connectBtn').addEventListener('click', function(e) {
         e.preventDefault();
-
-        // Recuperar de sessionStorage
-        const s = sessionStorage.getItem('cambium_s');
-        const ap = sessionStorage.getItem('cambium_ap');
-        const client = sessionStorage.getItem('cambium_client');
-        const ssid = sessionStorage.getItem('cambium_ssid');
-        let server = sessionStorage.getItem('cambium_server');
-
-        // Si la sesión es null, no tiene caso intentar el 404
-        if (!s || s === "null") {
-            alert("Error de sesión: El enlace ha expirado. Por favor, apaga y enciende tu WiFi para volver a intentar.");
-            return;
-        }
-
-        if (!server || server === "null" || server.includes('192.168')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Parámetros capturados
+        const ap = urlParams.get('ga_ap_mac');
+        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
+        const session = urlParams.get('s');
+        const ssid = urlParams.get('ga_ssid');
+        // Si el servidor es 192.168.x.x, lo cambiamos por el nombre DNS para evitar el error de certificado
+        let server = urlParams.get('ga_srvr');
+        if (!server || server.includes('192.168')) {
             server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
         }
+        const redir = urlParams.get('ga_continue_url') || "http://connectivitycheck.gstatic.com/generate_204";
 
-        const redir = "https://empleo.leon.gob.mx";
-
-        const finalUrl = "https://" + server + "/guestportal/login?" + 
-                         "freeAccess=true" +
-                         "&ga_ap_mac=" + encodeURIComponent(ap) +
-                         "&ga_cmac=" + encodeURIComponent(client) +
-                         "&ga_srvr=" + encodeURIComponent(server) +
-                         "&ga_ssid=" + encodeURIComponent(ssid) +
-                         "&s=" + encodeURIComponent(s) +
-                         "&ga_continue_url=" + encodeURIComponent(redir);
+        // IMPORTANTE: Cambiamos a HTTP (sin S) para la validación inicial 
+        // si el certificado sigue dando problemas, o forzamos el subdominio guest.
+        const finalUrl = https://${server}/guestportal/login? + 
+                         freeAccess=true& +
+                         ga_ap_mac=${encodeURIComponent(ap)}& +
+                         ga_cmac=${encodeURIComponent(client)}& +
+                         ga_srvr=${encodeURIComponent(server)}& +
+                         ga_ssid=${encodeURIComponent(ssid)}& +
+                         s=${encodeURIComponent(session)}& +
+                         ga_continue_url=${encodeURIComponent(redir)};
 
         window.location.href = finalUrl;
     });
 </script>
+
 </body>
 </html>
 
