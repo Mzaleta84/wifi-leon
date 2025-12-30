@@ -15,7 +15,6 @@
 <div class="card">
     <h2>Access Internet</h2>
     <p>Presione el botón para conectar a la red.</p>
-
     <a href="#" id="connectLink" class="btn-connect">Connect</a>
 </div>
 
@@ -25,30 +24,29 @@
         
         const urlParams = new URLSearchParams(window.location.search);
         
-        // Recolectamos todos los parámetros originales
+        // 1. FORZAMOS EL SERVIDOR DE LA NUBE (No la IP 192.168...)
+        // Usamos la instancia que sabemos que es tuya
+        const cloudServer = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+        
         const ap = urlParams.get('ga_ap_mac');
         const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
-        const server = urlParams.get('ga_srvr') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
         const session = urlParams.get('s');
         const ssid = urlParams.get('ga_ssid');
         const redir = urlParams.get('ga_continue_url') || "https://www.google.com";
 
-        // Construimos la URL de login con el método GET
-        // Usamos la URL de gestión que es la que procesa el acceso
-        const loginUrl = `https://${server}/guestportal/login?` + 
+        // 2. Construimos la URL apuntando SIEMPRE a la nube
+        const loginUrl = `https://${cloudServer}/guestportal/login?` + 
                          `freeAccess=true&` +
                          `ga_ap_mac=${encodeURIComponent(ap)}&` +
                          `ga_cmac=${encodeURIComponent(client)}&` +
-                         `ga_srvr=${encodeURIComponent(server)}&` +
+                         `ga_srvr=${encodeURIComponent(cloudServer)}&` +
                          `ga_ssid=${encodeURIComponent(ssid)}&` +
                          `s=${encodeURIComponent(session)}&` +
                          `ga_continue_url=${encodeURIComponent(redir)}`;
 
-        console.log("Redirigiendo a:", loginUrl);
         window.location.href = loginUrl;
     });
 </script>
 
 </body>
 </html>
-
