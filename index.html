@@ -3,64 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Wi-Fi</title>
+    <title>Wi-Fi Access</title>
     <style>
-        body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 2rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; border-top: 5px solid #25478d; }
-        h2 { color: #424242; font-size: 24px; }
-        .btn-primary { background-color: #25478d; color: white; border: none; padding: 12px 30px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
-        .btn-primary:hover { background-color: #1a3263; }
+        body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2.5rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 380px; border-top: 5px solid #25478d; }
+        h2 { color: #424242; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; }
+        .btn-connect { background-color: #25478d; color: white; border: none; padding: 14px; width: 100%; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-connect:hover { background-color: #1a3263; }
     </style>
 </head>
-<body class="cp-body">
+<body>
 
 <div class="card">
-    <h2 id="title">Access Internet</h2>
-    <p>Presione el botón para conectar</p>
+    <h2>Access Internet</h2>
+    <p>Presione el botón para conectar a la red.</p>
 
-    <form method="POST" id="loginForm">
+    <form method="POST" id="loginForm" action="https://us-e1-guest.cloud.cambiumnetworks.com/guestportal/login">
+        
         <input type="hidden" name="freeAccess" value="true">
         <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
         <input type="hidden" name="ga_client_mac" id="ga_cmac">
         <input type="hidden" name="ga_srvr" id="ga_srvr">
         <input type="hidden" name="ga_continue_url" id="ga_continue_url">
         
-        <button type="submit" id="freeLogin" class="btn btn-primary">Connect</button>
+        <button type="submit" class="btn-connect">Connect</button>
     </form>
 </div>
 
 <script>
-    // 1. Extraer los datos de la URL (Lo que hace common.js)
+    // Capturamos los datos que el AP envía en la URL automáticamente
     const urlParams = new URLSearchParams(window.location.search);
+
+    // Mapeo de variables según el estándar de Cambium que subiste
+    document.getElementById('ga_ap_mac').value = urlParams.get('ga_ap_mac');
+    document.getElementById('ga_cmac').value = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
+    document.getElementById('ga_srvr').value = urlParams.get('ga_srvr');
     
-    // Cambium usa nombres específicos: ga_ap_mac, ga_cmac (en lugar de client_mac en algunos casos)
-    const data = {
-        ap: urlParams.get('ga_ap_mac'),
-        client: urlParams.get('ga_cmac') || urlParams.get('ga_client_mac'),
-        server: urlParams.get('ga_srvr') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com",
-        redirect: urlParams.get('ga_continue_url') || "https://www.google.com"
-    };
+    // Redirección después del éxito
+    document.getElementById('ga_continue_url').value = urlParams.get('ga_continue_url') || "https://www.google.com";
 
-    // 2. Llenar el formulario
-    document.getElementById('ga_ap_mac').value = data.ap;
-    document.getElementById('ga_cmac').value = data.client;
-    document.getElementById('ga_srvr').value = data.server;
-    document.getElementById('ga_continue_url').value = data.redirect;
-
-    // 3. Configurar el destino (La instancia que encontraste)
-    // El "post" en tu index original apunta a us-e1-guest... pero usaremos tu instancia de gestión
-    const form = document.getElementById('loginForm');
-    form.action = "https://" + data.server + "/guestportal/login";
-
-    // 4. Lógica de OneClick: Si falla el envío tradicional, avisar
-    form.onsubmit = function() {
-        console.log("Intentando conectar a través de: " + data.server);
-        if(!data.ap || !data.client) {
-            alert("Error: Faltan parámetros de red (MAC). Asegúrate de que el AP tenga 'Prefix Query Strings' activo.");
-            return false;
-        }
-        return true;
-    };
+    // Verificación rápida en consola
+    console.log("Formulario preparado para enviar a us-e1-guest");
 </script>
 
 </body>
