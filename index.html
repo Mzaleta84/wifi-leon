@@ -24,41 +24,34 @@
 </div>
 
 <script>
-    // --- 1. MEMORIA DE SEGURIDAD ---
-    // Apenas carga la página, revisamos si hay datos en la URL. 
-    // Si los hay, los guardamos en el teléfono (localStorage).
-
     document.getElementById('connectBtn').addEventListener('click', function(e) {
         e.preventDefault();
         document.getElementById('loader').style.display = 'block';
         this.style.opacity = '0.5';
         this.style.pointerEvents = 'none';
 
-        // --- 2. RECUPERACIÓN DE DATOS ---
-        // Intentamos leer de la URL, pero si está vacía (segunda ventana), leemos de la memoria.
-        const s = urlParams.get('s') || localStorage.getItem('wifi_s');
-        const ap = urlParams.get('ga_ap_mac') || localStorage.getItem('wifi_ap');
-        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac') || localStorage.getItem('wifi_client');
-        const ssid = urlParams.get('ga_ssid') || localStorage.getItem('wifi_ssid');
-        const server = urlParams.get('ga_srvr') || localStorage.getItem('wifi_server') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+        const urlParams = new URLSearchParams(window.location.search);
         
-        // Forzamos la redirección a la bolsa de empleo
-        const redir = "https://empleo.leon.gob.mx";
+        // Extraemos todos los datos que el AP nos pasó
+        const ap = urlParams.get('ga_ap_mac');
+        const client = urlParams.get('ga_cmac') || urlParams.get('ga_client_mac');
+        const session = urlParams.get('s');
+        const ssid = urlParams.get('ga_ssid');
+        const server = urlParams.get('ga_srvr') || "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+        const redir = urlParams.get('ga_continue_url') || "https://www.google.com";
 
-        if (!s || s === "null") {
-            alert("Error: No se encontró una sesión activa. Por favor, desconéctate y vuelve a entrar al WiFi.");
-            return;
-        }
-
+        // Construimos la URL de login mediante método GET (directo en la URL)
+        // Esto evita que CloudFront dispare el error 403 Forbidden
         const finalUrl = `https://${server}/guestportal/login?` + 
                          `freeAccess=true&` +
                          `ga_ap_mac=${encodeURIComponent(ap)}&` +
                          `ga_cmac=${encodeURIComponent(client)}&` +
                          `ga_srvr=${encodeURIComponent(server)}&` +
                          `ga_ssid=${encodeURIComponent(ssid)}&` +
-                         `s=${encodeURIComponent(s)}&` +
+                         `s=${encodeURIComponent(session)}&` +
                          `ga_continue_url=${encodeURIComponent(redir)}`;
 
+        // Saltamos directamente a la validación de Cambium
         window.location.href = finalUrl;
     });
 </script>
