@@ -3,43 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WiFi Gratuito - León</title>
+    <title>Portal Cautivo León</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <div class="container">
-        <img src="captiveportal-banner.png" alt="Logo León" class="logo">
+        <img src="captiveportal-banner.png" alt="Logo" class="logo">
         
         <div class="status-icons">
-            <img src="zona-wifi.png" width="140" alt="WiFi">
-            <img src="50minutos.png" width="140" alt="50 min">
+            <img src="zona-wifi.png" width="150" alt="WiFi">
+            <img src="50minutos.png" width="150" alt="50 min">
         </div>
 
         <div class="terms-box">
-            <p style="text-align: center; font-weight: bold; color: #003366;">¡Bienvenido al WiFi de León!</p>
-            <p style="text-align: center; font-size: 0.9em;">
-                Para navegar, por favor acepta los términos de uso.<br>
-                Sesiones de 50 minutos con alta velocidad.
+            <p style="text-align: center;">
+                Cada sesión tiene una duración máxima de 50 minutos.<br>
+                La cobertura del servicio WiFi es de 30 a 40 metros alrededor del nodo.
             </p>
         </div>
 
         <form id="loginForm" method="post" action="https://us-e1.api.cloud.cambiumnetworks.com/api/v2/easypass/external-portal/login">
             <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
             <input type="hidden" name="ga_cmac" id="ga_cmac">
-            <input type="hidden" name="ga_Qv" id="ga_Qv">
-            
-            <input type="hidden" name="api_key" value="1987855587fc6c201b4db6ab28c8fd4ece48f41843d7c88522f0e32e8f0fba9c">
+            <input type="hidden" name="ga_Qv" id="ga_Qv"> <input type="hidden" name="api_key" value="1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae">
             <input type="hidden" name="freeAccess" value="true">
-            <input type="hidden" name="ga_continue_url" value="https://empleo.leon.gob.mx/">
+            <input type="hidden" name="ga_success_url" value="https://empleo.leon.gob.mx">
             
-            <button id="connectBtn" class="btn" type="button">
-                Acepto Condiciones y Conectar
-            </button>
+            <button id="connectBtn" class="btn" type="submit" disabled>Acepto Condiciones y Conectar</button>
         </form>
 
         <div class="footer">
-            <p>Reporte de fallas: <br> <a href="tel:4774297446" style="color:white; font-weight:bold;">4774297446</a></p>
+            <p>Reporte de fallas: <br>
+                <a href="tel:4774297446" style="color: #ffffff; font-size: 18px;">4774297446</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="surveyModal" class="modal-overlay active">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Encuesta ciudadana</h2>
+                <p>Por favor, responde estas preguntas para continuar.</p>
+            </div>
+            
+            <form id="surveyForm">
+                <div class="form-group">
+                    <label>Género</label>
+                    <select name="genero" required>
+                        <option value="" disabled selected>Selecciona una opción</option>
+                        <option value="Hombre">Hombre</option>
+                        <option value="Mujer">Mujer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Rango de edad:</label>
+                    <select name="rango_edad" required>
+                        <option value="" disabled selected>Selecciona una opción</option>
+                        <option value="18-25 años">18-25 años</option>
+                        <option value="26-35 años">26-35 años</option>
+                        <option value="36-45 años">36-45 años</option>
+                        <option value="46-55 años">46-55 años</option>
+                        <option value="56 y más">56 y más</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nivel de estudios:</label>
+                    <select name="nive_estudios" required>
+                        <option value="" disabled selected>Selecciona una opción</option>
+                        <option value="Primaria">Primaria</option>
+                        <option value="Secundaria">Secundaria</option>
+                        <option value="Universidad">Universidad</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Enviar y Continuar</button>
+            </form>
         </div>
     </div>
 
