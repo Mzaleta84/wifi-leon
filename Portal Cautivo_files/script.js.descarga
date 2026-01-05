@@ -1,50 +1,40 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const connectBtn = document.getElementById('connectBtn');
-    const loginForm = document.getElementById('loginForm');
+    // 1. TUS DATOS DE CAMBIUM
     const API_KEY = "1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae";
     const ENDPOINT = "https://us-e1.api.cloud.cambiumnetworks.com/api/v2/easypass/external-portal/login";
 
-    // Función universal para capturar parámetros de la URL
-    function getUniversalParam(names) {
-        const urlParams = new URLSearchParams(window.location.search);
+    const btn = document.getElementById('connectBtn');
+    const msg = document.getElementById('msg');
+
+    // 2. FUNCIÓN PARA LEER LA URL DEL E510
+    // El e510 suele mandar el token como 's' o 'ga_request_id'
+    function getParam(names) {
+        const params = new URLSearchParams(window.location.search);
         for (let name of names) {
-            if (urlParams.has(name)) return urlParams.get(name);
+            if (params.has(name)) return params.get(name);
         }
         return '';
     }
 
-    // --- EL BLOQUE QUE ME PASASTE (COMPILADO Y MEJORADO) ---
-    // Capturamos los datos del AP y del Cliente
-    const apMac = getUniversalParam(['ga_ap_mac', 'ap_mac', 'apmac']);
-    const clientMac = getUniversalParam(['ga_client_mac', 'ga_cmac', 'client_mac', 'cmac']);
-    const sessionToken = getUniversalParam(['s', 'ga_Qv', 'ga_request_id', 'token', 'ga_session_id']);
+    const apMac = getParam(['ga_ap_mac', 'ap_mac']);
+    const clientMac = getParam(['ga_client_mac', 'ga_cmac', 'client_mac']);
+    const token = getParam(['s', 'ga_Qv', 'ga_request_id']);
 
-    // Llenamos los campos ocultos (por si acaso se usara el submit tradicional)
-    if (document.getElementById('ga_ap_mac')) document.getElementById('ga_ap_mac').value = apMac;
-    if (document.getElementById('ga_cmac')) document.getElementById('ga_cmac').value = clientMac;
-    if (document.getElementById('ga_Qv')) document.getElementById('ga_Qv').value = sessionToken;
+    // 3. LOGICA DEL BOTÓN
+    btn.addEventListener('click', async () => {
+        if (!token) {
+            msg.innerText = "Error: No se detectó sesión de WiFi (Token faltante).";
+            msg.style.color = "red";
+            return;
+        }
 
-    // Validación de seguridad
-    if (!sessionToken) {
-        console.error("TOKEN NO DETECTADO - Revisa Prefix Query Strings en cnMaestro");
-        // Opcional: mostrar alerta al usuario si el token falta
-    } else {
-        // Si hay token, habilitamos el botón
-        connectBtn.disabled = false;
-        connectBtn.style.opacity = "1";
-    }
-
-    // --- ENVÍO MEDIANTE FETCH PARA EVITAR EL ERROR 401 ---
-    connectBtn.addEventListener('click', async function(e) {
-        e.preventDefault(); // Evita el envío tradicional del form
-        
-        connectBtn.innerText = "Conectando...";
-        connectBtn.disabled = true;
+        btn.disabled = true;
+        msg.innerText = "Autenticando...";
 
         const data = {
             ga_ap_mac: apMac,
             ga_cmac: clientMac,
-            ga_Qv: sessionToken,
+            ga_Qv: token,
             freeAccess: true
         };
 
@@ -53,26 +43,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // ESTA ES LA SOLUCIÓN AL 401: El token en el Header
                     'Authorization': 'Bearer ' + API_KEY
                 },
                 body: JSON.stringify(data)
             });
 
             if (response.ok) {
-                console.log("Autenticación exitosa");
-                // Redirigir a la URL de éxito
-                window.location.href = "https://empleo.leon.gob.mx";
+                msg.innerText = "¡Conectado con éxito!";
+                msg.style.color = "green";
+                // Redirigir a la página final
+                setTimeout(() => {
+                    window.location.href = "https://empleo.leon.gob.mx";
+                }, 1500);
             } else {
-                const errorResult = await response.json();
-                alert("Error de autenticación (401): " + (errorResult.message || "Llave inválida"));
-                connectBtn.disabled = false;
-                connectBtn.innerText = "Acepto Condiciones y Conectar";
+                const resJson = await response.json();
+                msg.innerText = "Error Cambium: " + (resJson.message || response.status);
+                btn.disabled = false;
             }
-        } catch (error) {
-            console.error("Error de red:", error);
-            alert("Error de conexión con el servidor de Cambium.");
-            connectBtn.disabled = false;
+        } catch (err) {
+            msg.innerText = "Error de red: No se pudo alcanzar la nube.";
+            btn.disabled = false;
         }
     });
 });
