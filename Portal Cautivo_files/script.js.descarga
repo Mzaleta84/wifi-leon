@@ -129,13 +129,13 @@ if (connectBtn) {
             const redir = "https://empleo.leon.gob.mx";
 
             // 3. CONSTRUCCIÓN DE URL FINAL (Método GET para evitar Error 400 e Invalid Request)
-            const finalUrl = `https://${server}/guestportal/login?` + 
-                             `freeAccess=true&` +
-                             `ga_ap_mac=${encodeURIComponent(ap)}&` +
-                             `ga_cmac=${encodeURIComponent(client)}&` +
-                             `ga_ssid=${encodeURIComponent(ssid)}&` +
-                             `s=${encodeURIComponent(session)}&` +
-                             `ga_continue_url=${encodeURIComponent(redir)}`;
+           const finalUrl = `https://${server}/config/login.php?` + 
+                 `freeAccess=true&` +
+                 `ga_ap_mac=${encodeURIComponent(ap)}&` +
+                 `ga_cmac=${encodeURIComponent(client)}&` +
+                 `ga_ssid=${encodeURIComponent(ssid)}&` +
+                 `s=${encodeURIComponent(session)}&` +
+                 `ga_continue_url=${encodeURIComponent(redir)}`;
 
             console.log("Liberando internet en el servidor: " + server);
             window.location.href = finalUrl;
