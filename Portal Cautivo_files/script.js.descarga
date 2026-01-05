@@ -6,9 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('surveyModal');
     const connectBtn = document.getElementById('connectBtn');
     const surveyForm = document.getElementById('surveyForm');
-    const loginForm = document.getElementById('loginForm');
-    
-    // --- 1. CAPTURA DE PARÁMETROS URL ---
+
+    // Función para obtener parámetros de la URL (MAC, Token, etc.)
     function getUrlParameter(name) {
         name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
         var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
-    // --- 2. MANEJO DE COOKIES ---
+    // Manejo de Cookies para no repetir la encuesta
     function setCookie(name, value, days) {
         let expires = "";
         if (days) {
@@ -38,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
 
-    // --- 3. MANEJO DEL MODAL ---
     function showModal() {
         if(modal) modal.classList.add('active');
         if(connectBtn) connectBtn.disabled = true;
@@ -52,30 +50,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- 4. ENVÍO DE DATOS A TU API ---
+    // Enviar encuesta a tu servidor SysGto
     async function attemptSync() {
         const pendingData = localStorage.getItem('pending_survey_data');
         if (!pendingData) return true;
-
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: pendingData
             });
-            
             if (response.ok) {
                 localStorage.removeItem('pending_survey_data');
                 return true;
             }
             return false;
         } catch (error) {
-            console.warn('Sync failed (offline):', error);
+            console.warn("Falla de red, datos guardados localmente.");
             return false;
         }
     }
 
-    // --- 5. LÓGICA INICIAL ---
+    // Lógica al abrir la página
     attemptSync();
     if (getCookie(COOKIE_NAME)) {
         hideModal();
@@ -83,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showModal();
     }
 
-    // --- 6. EVENTO: FINALIZAR ENCUESTA ---
+    // Guardar datos de encuesta
     if (surveyForm) {
         surveyForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -93,52 +89,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 rango_edad: formData.get('rango_edad'),
                 estado_civil: formData.get('estado_civil'),
                 nive_estudios: formData.get('nive_estudios'),
-                ip: getUrlParameter('ga_client_ip'),
                 mac: getUrlParameter('ga_client_mac') || getUrlParameter('ga_cmac'), 
-                system: getUrlParameter('ga_ssid'), 
+                ssid: getUrlParameter('ga_ssid')
             };
             
             localStorage.setItem('pending_survey_data', JSON.stringify(surveyData));
-            const success = await attemptSync();
-            
-            if (success) {
-                setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
-                hideModal();
-            } else {
-                // Si falla por falta de internet, permitimos seguir (opcional)
-                setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
-                hideModal();
-            }
+            await attemptSync(); // Intenta enviar, pero sigue aunque falle
+            setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
+            hideModal();
         });
     }
 
-    // --- 7. EVENTO: CONECTAR A INTERNET (EL CIERRE DE CAMBIUM) ---
-if (connectBtn) {
+    // BOTÓN CONECTAR: Redirección corregida para evitar 404 y Access Denied
+    if (connectBtn) {
         connectBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (connectBtn.disabled) return;
-
-            // 1. FORZAMOS el subdominio de tu cuenta para que el servidor de Cambium reconozca el token 's'
+            
+            // 1. Servidor específico de tu cuenta Cambium
             const server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
             
-            // 2. Captura de datos inyectados por el AP en la URL
+            // 2. Recolección de parámetros obligatorios
             const ap = getUrlParameter('ga_ap_mac');
             const client = getUrlParameter('ga_cmac') || getUrlParameter('ga_client_mac');
             const session = getUrlParameter('s');
             const ssid = getUrlParameter('ga_ssid');
             const redir = "https://empleo.leon.gob.mx";
 
-            // 3. CONSTRUCCIÓN DE URL FINAL (Método GET para evitar Error 400 e Invalid Request)
-           const finalUrl = `https://${server}/config/login.php?` + 
-                 `freeAccess=true&` +
-                 `ga_ap_mac=${encodeURIComponent(ap)}&` +
-                 `ga_cmac=${encodeURIComponent(client)}&` +
-                 `ga_ssid=${encodeURIComponent(ssid)}&` +
-                 `s=${encodeURIComponent(session)}&` +
-                 `ga_continue_url=${encodeURIComponent(redir)}`;
+            // 3. URL DE LOGIN CORRECTA (config/login.php es el endpoint de autenticación)
+            const finalUrl = `https://${server}/config/login.php?` + 
+                             `freeAccess=true&` +
+                             `ga_ap_mac=${encodeURIComponent(ap)}&` +
+                             `ga_cmac=${encodeURIComponent(client)}&` +
+                             `ga_ssid=${encodeURIComponent(ssid)}&` +
+                             `s=${encodeURIComponent(session)}&` +
+                             `ga_continue_url=${encodeURIComponent(redir)}`;
 
-            console.log("Liberando internet en el servidor: " + server);
+            console.log("Iniciando acceso Wi-Fi...");
             window.location.href = finalUrl;
         });
     }
-}); // Cierre del DOMContentLoaded
+});
