@@ -1,68 +1,22 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. TUS DATOS DE CAMBIUM
-    const API_KEY = "1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae";
-    const ENDPOINT = "https://us-e1.api.cloud.cambiumnetworks.com/api/v2/easypass/external-portal/login";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi León - Acceso</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-    const btn = document.getElementById('connectBtn');
-    const msg = document.getElementById('msg');
+    <div style="text-align: center; margin-top: 50px;">
+        <h2>Bienvenido al WiFi Gratuito</h2>
+        <p>Presiona el botón para navegar 50 minutos.</p>
+        
+        <button id="connectBtn" class="btn-acceso">CONECTAR AHORA</button>
+        
+        <p id="msg" style="margin-top: 20px; font-weight: bold;"></p>
+    </div>
 
-    // 2. FUNCIÓN PARA LEER LA URL DEL E510
-    // El e510 suele mandar el token como 's' o 'ga_request_id'
-    function getParam(names) {
-        const params = new URLSearchParams(window.location.search);
-        for (let name of names) {
-            if (params.has(name)) return params.get(name);
-        }
-        return '';
-    }
-
-    const apMac = getParam(['ga_ap_mac', 'ap_mac']);
-    const clientMac = getParam(['ga_client_mac', 'ga_cmac', 'client_mac']);
-    const token = getParam(['s', 'ga_Qv', 'ga_request_id']);
-
-    // 3. LOGICA DEL BOTÓN
-    btn.addEventListener('click', async () => {
-        if (!token) {
-            msg.innerText = "Error: No se detectó sesión de WiFi (Token faltante).";
-            msg.style.color = "red";
-            return;
-        }
-
-        btn.disabled = true;
-        msg.innerText = "Autenticando...";
-
-        const data = {
-            ga_ap_mac: apMac,
-            ga_cmac: clientMac,
-            ga_Qv: token,
-            freeAccess: true
-        };
-
-        try {
-            const response = await fetch(ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + API_KEY
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (response.ok) {
-                msg.innerText = "¡Conectado con éxito!";
-                msg.style.color = "green";
-                // Redirigir a la página final
-                setTimeout(() => {
-                    window.location.href = "https://empleo.leon.gob.mx";
-                }, 1500);
-            } else {
-                const resJson = await response.json();
-                msg.innerText = "Error Cambium: " + (resJson.message || response.status);
-                btn.disabled = false;
-            }
-        } catch (err) {
-            msg.innerText = "Error de red: No se pudo alcanzar la nube.";
-            btn.disabled = false;
-        }
-    });
-});
+    <script src="script.js"></script>
+</body>
+</html>
