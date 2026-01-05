@@ -2,15 +2,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const COOKIE_NAME = 'survey_completed';
     const COOKIE_DURATION_DAYS = 180;
     const API_URL = 'https://portal.sysgto.com/encuesta';
-    // const LOGIN_URL = '$login_url$'; 
-    //const LOGIN_URL = 'http://localhost';
     
     const modal = document.getElementById('surveyModal');
     const connectBtn = document.getElementById('connectBtn');
     const surveyForm = document.getElementById('surveyForm');
     const loginForm = document.getElementById('loginForm');
     
-    // Helper to get URL params
+    // --- 1. CAPTURA DE PARÁMETROS URL ---
     function getUrlParameter(name) {
         name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
         var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -18,23 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
-    // Populate hidden fields from URL params
-    if (loginForm) {
-        const fields = ['ga_ap_mac', 'ga_client_mac', 'ga_nas_id', 'ga_ssid', 'ga_request_id'];
-        fields.forEach(field => {
-            const val = getUrlParameter(field);
-            if (loginForm.elements[field]) {
-                loginForm.elements[field].value = val;
-            }
-        });
-
-        // Optional: Update action if login_url is provided in params
-        // const loginUrlParam = getUrlParameter('login_url') || getUrlParameter('ga_login_url');
-        // if (loginUrlParam) {
-        //     loginForm.action = loginUrlParam + '?freeAccess=true';
-        // }
-    }
-    
+    // --- 2. MANEJO DE COOKIES ---
     function setCookie(name, value, days) {
         let expires = "";
         if (days) {
@@ -55,87 +37,111 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return null;
     }
-    
+
+    // --- 3. MANEJO DEL MODAL ---
     function showModal() {
-        modal.classList.add('active');
-        connectBtn.disabled = true;
+        if(modal) modal.classList.add('active');
+        if(connectBtn) connectBtn.disabled = true;
     }
     
     function hideModal() {
-        modal.classList.remove('active');
-        connectBtn.disabled = false;
+        if(modal) modal.classList.remove('active');
+        if(connectBtn) {
+            connectBtn.disabled = false;
+            connectBtn.style.opacity = "1";
+        }
     }
-    
+
+    // --- 4. ENVÍO DE DATOS A TU API ---
     async function attemptSync() {
         const pendingData = localStorage.getItem('pending_survey_data');
-        if (pendingData) {
-            try {
-                const data = JSON.parse(pendingData);
-                
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    console.log('Survey data synced successfully');
-                    localStorage.removeItem('pending_survey_data');
-                    return true;
-                } else {
-                    console.warn('Sync failed:', response.status);
-                    return false;
-                }
-            } catch (error) {
-                console.warn('Sync failed (likely offline):', error);
-                return false;
+        if (!pendingData) return true;
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: pendingData
+            });
+            
+            if (response.ok) {
+                localStorage.removeItem('pending_survey_data');
+                return true;
             }
+            return false;
+        } catch (error) {
+            console.warn('Sync failed (offline):', error);
+            return false;
         }
-        return true;
     }
-    
+
+    // --- 5. LÓGICA INICIAL ---
     attemptSync();
-    
-    const hasCookie = getCookie(COOKIE_NAME);
-    
-    if (hasCookie) {
-        connectBtn.disabled = false;
+    if (getCookie(COOKIE_NAME)) {
+        hideModal();
     } else {
         showModal();
     }
-    
-    surveyForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(surveyForm);
-        const surveyData = {
-            genero: formData.get('genero'),
-            rango_edad: formData.get('rango_edad'),
-            estado_civil: formData.get('estado_civil'),
-            nive_estudios: formData.get('nive_estudios'),
-            ip: getUrlParameter('ga_client_ip') || '$ip$',
-            mac: getUrlParameter('ga_client_mac') || '$mac$', 
-            system: getUrlParameter('ga_ssid') || '$ssid$', 
-        };
-        
-        localStorage.setItem('pending_survey_data', JSON.stringify(surveyData));
-        
-        const success = await attemptSync();
-        
-        if (success) {
-            setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
-            hideModal();
-        } else {
-            alert('No se pudo enviar la encuesta. Por favor verifique su conexión e intente nuevamente.');
-        }
-    });
-    
-    // connectBtn.addEventListener('click', function() {
-    //     if (!connectBtn.disabled) {
-    //         window.location.href = LOGIN_URL;
-    //     }
-    // });
-    
+
+    // --- 6. EVENTO: FINALIZAR ENCUESTA ---
+    if (surveyForm) {
+        surveyForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(surveyForm);
+            const surveyData = {
+                genero: formData.get('genero'),
+                rango_edad: formData.get('rango_edad'),
+                estado_civil: formData.get('estado_civil'),
+                nive_estudios: formData.get('nive_estudios'),
+                ip: getUrlParameter('ga_client_ip'),
+                mac: getUrlParameter('ga_client_mac') || getUrlParameter('ga_cmac'), 
+                system: getUrlParameter('ga_ssid'), 
+            };
+            
+            localStorage.setItem('pending_survey_data', JSON.stringify(surveyData));
+            const success = await attemptSync();
+            
+            if (success) {
+                setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
+                hideModal();
+            } else {
+                // Si falla por falta de internet, permitimos seguir (opcional)
+                setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
+                hideModal();
+            }
+        });
+    }
+
+    // --- 7. EVENTO: CONECTAR A INTERNET (EL CIERRE DE CAMBIUM) ---
+    if (connectBtn) {
+        connectBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (connectBtn.disabled) return;
+
+            // Captura de datos inyectados por el AP
+            const ap = getUrlParameter('ga_ap_mac');
+            const client = getUrlParameter('ga_cmac') || getUrlParameter('ga_client_mac');
+            const session = getUrlParameter('s');
+            const ssid = getUrlParameter('ga_ssid');
+            const redir = "https://empleo.leon.gob.mx";
+            
+            // Servidor Cambium (detecta si es local o nube)
+            let server = getUrlParameter('ga_srvr');
+            if (!server || server.includes('192.168')) {
+                server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+            }
+
+            // URL Final de Autenticación (Método GET para evitar Error 400)
+            const finalUrl = `https://${server}/guestportal/login?` + 
+                             `freeAccess=true&` +
+                             `ga_ap_mac=${encodeURIComponent(ap)}&` +
+                             `ga_cmac=${encodeURIComponent(client)}&` +
+                             `ga_ssid=${encodeURIComponent(ssid)}&` +
+                             `s=${encodeURIComponent(session)}&` +
+                             `ga_continue_url=${encodeURIComponent(redir)}`;
+
+            console.log("Liberando internet en: " + server);
+            window.location.href = finalUrl;
+        });
+    }
 });
