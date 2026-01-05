@@ -1,134 +1,78 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const COOKIE_NAME = 'survey_completed';
-    const COOKIE_DURATION_DAYS = 180;
-    const API_URL = 'https://portal.sysgto.com/encuesta';
-    
-    const modal = document.getElementById('surveyModal');
     const connectBtn = document.getElementById('connectBtn');
-    const surveyForm = document.getElementById('surveyForm');
     const loginForm = document.getElementById('loginForm');
-    
-    // Función mejorada para capturar parámetros (Soporta múltiples nombres por variable)
-    function getVariable(names) {
+    const API_KEY = "1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae";
+    const ENDPOINT = "https://us-e1.api.cloud.cambiumnetworks.com/api/v2/easypass/external-portal/login";
+
+    // Función universal para capturar parámetros de la URL
+    function getUniversalParam(names) {
         const urlParams = new URLSearchParams(window.location.search);
         for (let name of names) {
-            if (urlParams.has(name)) return decodeURIComponent(urlParams.get(name));
+            if (urlParams.has(name)) return urlParams.get(name);
         }
         return '';
     }
 
-    // Llenado inteligente del formulario antes de cualquier acción
-   if (loginForm) {
-        const apMac = getUniversalParam(['ga_ap_mac', 'ap_mac', 'apmac']);
-        const clientMac = getUniversalParam(['ga_client_mac', 'ga_cmac', 'client_mac', 'cmac']);
-        
-        // Probamos con todos los nombres posibles de sesión que manda el AP
-        const sessionToken = getUniversalParam(['s', 'ga_Qv', 'ga_request_id', 'token', 'ga_session_id']);
-        
-        document.getElementById('ga_ap_mac').value = apMac;
-        document.getElementById('ga_cmac').value = clientMac;
-        document.getElementById('ga_Qv').value = sessionToken;
+    // --- EL BLOQUE QUE ME PASASTE (COMPILADO Y MEJORADO) ---
+    // Capturamos los datos del AP y del Cliente
+    const apMac = getUniversalParam(['ga_ap_mac', 'ap_mac', 'apmac']);
+    const clientMac = getUniversalParam(['ga_client_mac', 'ga_cmac', 'client_mac', 'cmac']);
+    const sessionToken = getUniversalParam(['s', 'ga_Qv', 'ga_request_id', 'token', 'ga_session_id']);
 
-        // DEBUG: Si esto sale vacío en el celular, ahí está el problema del 401
-        if (!sessionToken) {
-            console.error("TOKEN NO DETECTADO - Revisa Prefix Query Strings en cnMaestro");
-        }
+    // Llenamos los campos ocultos (por si acaso se usara el submit tradicional)
+    if (document.getElementById('ga_ap_mac')) document.getElementById('ga_ap_mac').value = apMac;
+    if (document.getElementById('ga_cmac')) document.getElementById('ga_cmac').value = clientMac;
+    if (document.getElementById('ga_Qv')) document.getElementById('ga_Qv').value = sessionToken;
+
+    // Validación de seguridad
+    if (!sessionToken) {
+        console.error("TOKEN NO DETECTADO - Revisa Prefix Query Strings en cnMaestro");
+        // Opcional: mostrar alerta al usuario si el token falta
+    } else {
+        // Si hay token, habilitamos el botón
+        connectBtn.disabled = false;
+        connectBtn.style.opacity = "1";
     }
+
+    // --- ENVÍO MEDIANTE FETCH PARA EVITAR EL ERROR 401 ---
+    connectBtn.addEventListener('click', async function(e) {
+        e.preventDefault(); // Evita el envío tradicional del form
         
-        // Otros campos adicionales si existen en tu HTML
-        const ssid = getVariable(['ga_ssid', 'ssid']);
-        if (document.getElementById('ga_ssid')) document.getElementById('ga_ssid').value = ssid;
-    }
-    
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "") + expires + "; path=/";
-    }
-    
-    function getCookie(name) {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(';');
-        for(let i=0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-        }
-        return null;
-    }
-    
-    function showModal() {
-        if (modal) {
-            modal.classList.add('active');
-            connectBtn.disabled = true;
-        }
-    }
-    
-    function hideModal() {
-        if (modal) {
-            modal.classList.remove('active');
+        connectBtn.innerText = "Conectando...";
+        connectBtn.disabled = true;
+
+        const data = {
+            ga_ap_mac: apMac,
+            ga_cmac: clientMac,
+            ga_Qv: sessionToken,
+            freeAccess: true
+        };
+
+        try {
+            const response = await fetch(ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // ESTA ES LA SOLUCIÓN AL 401: El token en el Header
+                    'Authorization': 'Bearer ' + API_KEY
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                console.log("Autenticación exitosa");
+                // Redirigir a la URL de éxito
+                window.location.href = "https://empleo.leon.gob.mx";
+            } else {
+                const errorResult = await response.json();
+                alert("Error de autenticación (401): " + (errorResult.message || "Llave inválida"));
+                connectBtn.disabled = false;
+                connectBtn.innerText = "Acepto Condiciones y Conectar";
+            }
+        } catch (error) {
+            console.error("Error de red:", error);
+            alert("Error de conexión con el servidor de Cambium.");
             connectBtn.disabled = false;
         }
-    }
-    
-    async function attemptSync() {
-        const pendingData = localStorage.getItem('pending_survey_data');
-        if (pendingData) {
-            try {
-                const data = JSON.parse(pendingData);
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    localStorage.removeItem('pending_survey_data');
-                    return true;
-                }
-            } catch (error) {
-                console.warn('Sync pending...', error);
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    // Intentar sincronizar datos pendientes al cargar
-    attemptSync();
-    
-    // Lógica de visualización inicial
-    const hasCookie = getCookie(COOKIE_NAME);
-    if (hasCookie) {
-        hideModal();
-    } else {
-        showModal();
-    }
-    
-    // Manejo de la encuesta
-    surveyForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(surveyForm);
-        const surveyData = {
-            genero: formData.get('genero'),
-            rango_edad: formData.get('rango_edad'),
-            estado_civil: formData.get('estado_civil'),
-            nive_estudios: formData.get('nive_estudios'),
-            mac: getVariable(['ga_client_mac', 'ga_cmac', 'client_mac']) || '$mac$', 
-            ap_mac: getVariable(['ga_ap_mac', 'ap_mac']) || '$ap_mac$'
-        };
-        
-        localStorage.setItem('pending_survey_data', JSON.stringify(surveyData));
-        
-        // Intentar enviar, si falla igual permitimos continuar (para no bloquear al usuario)
-        const success = await attemptSync();
-        
-        setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
-        hideModal();
     });
 });
