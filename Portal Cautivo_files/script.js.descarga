@@ -18,18 +18,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Llenado inteligente del formulario antes de cualquier acción
-    if (loginForm) {
-        // Mapeo para MAC del AP
-        const apMac = getVariable(['ga_ap_mac', 'ap_mac', 'apmac']);
-        // Mapeo para MAC del Cliente
-        const clientMac = getVariable(['ga_client_mac', 'ga_cmac', 'client_mac', 'cmac']);
-        // Mapeo para Sesión (Token) -> Se asigna a ga_Qv para API V2
-        const sessionToken = getVariable(['s', 'ga_Qv', 'ga_request_id', 'token']);
+   if (loginForm) {
+        const apMac = getUniversalParam(['ga_ap_mac', 'ap_mac', 'apmac']);
+        const clientMac = getUniversalParam(['ga_client_mac', 'ga_cmac', 'client_mac', 'cmac']);
         
-        // Asignación a los inputs ocultos
-        if (document.getElementById('ga_ap_mac')) document.getElementById('ga_ap_mac').value = apMac;
-        if (document.getElementById('ga_cmac')) document.getElementById('ga_cmac').value = clientMac;
-        if (document.getElementById('ga_Qv')) document.getElementById('ga_Qv').value = sessionToken;
+        // Probamos con todos los nombres posibles de sesión que manda el AP
+        const sessionToken = getUniversalParam(['s', 'ga_Qv', 'ga_request_id', 'token', 'ga_session_id']);
+        
+        document.getElementById('ga_ap_mac').value = apMac;
+        document.getElementById('ga_cmac').value = clientMac;
+        document.getElementById('ga_Qv').value = sessionToken;
+
+        // DEBUG: Si esto sale vacío en el celular, ahí está el problema del 401
+        if (!sessionToken) {
+            console.error("TOKEN NO DETECTADO - Revisa Prefix Query Strings en cnMaestro");
+        }
+    }
         
         // Otros campos adicionales si existen en tu HTML
         const ssid = getVariable(['ga_ssid', 'ssid']);
