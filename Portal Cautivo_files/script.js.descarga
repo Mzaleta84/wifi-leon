@@ -1,90 +1,141 @@
 document.addEventListener('DOMContentLoaded', function() {
     const COOKIE_NAME = 'survey_completed';
-    const API_SURVEY_URL = 'https://portal.sysgto.com/encuesta';
+    const COOKIE_DURATION_DAYS = 180;
+    const API_URL = 'https://portal.sysgto.com/encuesta';
+    // const LOGIN_URL = '$login_url$'; 
+    //const LOGIN_URL = 'http://localhost';
     
     const modal = document.getElementById('surveyModal');
     const connectBtn = document.getElementById('connectBtn');
     const surveyForm = document.getElementById('surveyForm');
     const loginForm = document.getElementById('loginForm');
-
-    // Obtener parámetros de la URL
-    function getUrlParam(name) {
-        const urlParams = new URLSearchParams(window.location.search);
-        let param = urlParams.get(name);
-        // Fallback para MAC: Cambium usa ga_cmac o ga_client_mac
-        if (!param && name === 'ga_cmac') param = urlParams.get('ga_client_mac');
-        return param || "";
+    
+    // Helper to get URL params
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
-    // Manejo de Cookies
+    // Populate hidden fields from URL params
+    if (loginForm) {
+        const fields = ['ga_ap_mac', 'ga_client_mac', 'ga_nas_id', 'ga_ssid', 'ga_request_id'];
+        fields.forEach(field => {
+            const val = getUrlParameter(field);
+            if (loginForm.elements[field]) {
+                loginForm.elements[field].value = val;
+            }
+        });
+
+        // Optional: Update action if login_url is provided in params
+        // const loginUrlParam = getUrlParameter('login_url') || getUrlParameter('ga_login_url');
+        // if (loginUrlParam) {
+        //     loginForm.action = loginUrlParam + '?freeAccess=true';
+        // }
+    }
+    
     function setCookie(name, value, days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        document.cookie = name + "=" + value + "; expires=" + date.toUTCString() + "; path=/";
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
     }
     
     function getCookie(name) {
-        const value = "; " + document.cookie;
-        const parts = value.split("; " + name + "=");
-        if (parts.length === 2) return parts.pop().split(";").shift();
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for(let i=0;i < ca.length;i++) {
+            let c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
     }
-
-    // Mostrar/Ocultar Modal según cookie
-    if (getCookie(COOKIE_NAME)) {
+    
+    function showModal() {
+        modal.classList.add('active');
+        connectBtn.disabled = true;
+    }
+    
+    function hideModal() {
         modal.classList.remove('active');
         connectBtn.disabled = false;
-        connectBtn.style.opacity = "1";
     }
-
-    // Evento Formulario Encuesta
+    
+    async function attemptSync() {
+        const pendingData = localStorage.getItem('pending_survey_data');
+        if (pendingData) {
+            try {
+                const data = JSON.parse(pendingData);
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    console.log('Survey data synced successfully');
+                    localStorage.removeItem('pending_survey_data');
+                    return true;
+                } else {
+                    console.warn('Sync failed:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.warn('Sync failed (likely offline):', error);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    attemptSync();
+    
+    const hasCookie = getCookie(COOKIE_NAME);
+    
+    if (hasCookie) {
+        connectBtn.disabled = false;
+    } else {
+        showModal();
+    }
+    
     surveyForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const formData = new FormData(surveyForm);
-        const data = {
-            genero: formData.get('genero'),
-            edad: formData.get('rango_edad'),
-            estado: formData.get('estado_civil'),
-            estudios: formData.get('nive_estudios'),
-            mac: getUrlParam('ga_cmac'),
-            ssid: getUrlParam('ga_ssid')
-        };
-
-        // Guardar localmente
-        localStorage.setItem('pending_survey', JSON.stringify(data));
-
-        // Intentar envío a tu API de encuestas
-        try {
-            await fetch(API_SURVEY_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-        } catch (err) {
-            console.warn("API Encuesta offline. Datos guardados en navegador.");
-        }
-
-        setCookie(COOKIE_NAME, 'true', 180);
-        modal.classList.remove('active');
-        connectBtn.disabled = false;
-        connectBtn.style.opacity = "1";
-    });
-
-    // Evento Botón de Conectar (POST a Cambium)
-    connectBtn.addEventListener('click', function() {
-        const sessionToken = getUrlParam('s');
         
-        if (!sessionToken) {
-            alert("Error: No se detectó una sesión activa. Por favor, desconéctese y vuelva a conectarse al Wi-Fi.");
-            return;
+        const formData = new FormData(surveyForm);
+        const surveyData = {
+            genero: formData.get('genero'),
+            rango_edad: formData.get('rango_edad'),
+            estado_civil: formData.get('estado_civil'),
+            nive_estudios: formData.get('nive_estudios'),
+            ip: getUrlParameter('ga_client_ip') || '$ip$',
+            mac: getUrlParameter('ga_client_mac') || '$mac$', 
+            system: getUrlParameter('ga_ssid') || '$ssid$', 
+        };
+        
+        localStorage.setItem('pending_survey_data', JSON.stringify(surveyData));
+        
+        const success = await attemptSync();
+        
+        if (success) {
+            setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
+            hideModal();
+        } else {
+            alert('No se pudo enviar la encuesta. Por favor verifique su conexión e intente nuevamente.');
         }
-
-        // Llenar campos ocultos del formulario antes de enviar
-        document.getElementById('ga_ap_mac').value = getUrlParam('ga_ap_mac');
-        document.getElementById('ga_cmac').value = getUrlParam('ga_cmac');
-        document.getElementById('s').value = sessionToken;
-        document.getElementById('ga_ssid').value = getUrlParam('ga_ssid');
-
-        console.log("Iniciando autenticación con Cambium API...");
-        loginForm.submit();
     });
+    
+    // connectBtn.addEventListener('click', function() {
+    //     if (!connectBtn.disabled) {
+    //         window.location.href = LOGIN_URL;
+    //     }
+    // });
+    
 });
