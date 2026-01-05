@@ -113,25 +113,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- 7. EVENTO: CONECTAR A INTERNET (EL CIERRE DE CAMBIUM) ---
-    if (connectBtn) {
+if (connectBtn) {
         connectBtn.addEventListener('click', function(e) {
             e.preventDefault();
             if (connectBtn.disabled) return;
 
-            // Captura de datos inyectados por el AP
+            // 1. FORZAMOS el subdominio de tu cuenta para que el servidor de Cambium reconozca el token 's'
+            const server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
+            
+            // 2. Captura de datos inyectados por el AP en la URL
             const ap = getUrlParameter('ga_ap_mac');
             const client = getUrlParameter('ga_cmac') || getUrlParameter('ga_client_mac');
             const session = getUrlParameter('s');
             const ssid = getUrlParameter('ga_ssid');
             const redir = "https://empleo.leon.gob.mx";
-            
-            // Servidor Cambium (detecta si es local o nube)
-            let server = getUrlParameter('ga_srvr');
-            if (!server || server.includes('192.168')) {
-                server = "us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com";
-            }
 
-            // URL Final de Autenticación (Método GET para evitar Error 400)
+            // 3. CONSTRUCCIÓN DE URL FINAL (Método GET para evitar Error 400 e Invalid Request)
             const finalUrl = `https://${server}/guestportal/login?` + 
                              `freeAccess=true&` +
                              `ga_ap_mac=${encodeURIComponent(ap)}&` +
@@ -140,8 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
                              `s=${encodeURIComponent(session)}&` +
                              `ga_continue_url=${encodeURIComponent(redir)}`;
 
-            console.log("Liberando internet en: " + server);
+            console.log("Liberando internet en el servidor: " + server);
             window.location.href = finalUrl;
         });
     }
-});
+}); // Cierre del DOMContentLoaded
