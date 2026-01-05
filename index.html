@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WiFi León - Debug Mode</title>
+    <title>WiFi León - Debug V3</title>
     <style>
         body { font-family: sans-serif; background-color: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .card { background: #2d2d2d; padding: 25px; border-radius: 12px; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .btn-acceso { background-color: #00c853; color: white; border: none; padding: 15px; font-size: 18px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
         .btn-acceso:disabled { background-color: #555; cursor: not-allowed; }
-        
-        /* Consola de Debug Estilo Matrix */
         #debug-box { margin-top: 20px; padding: 15px; background: #000; color: #00ff41; font-family: 'Courier New', monospace; font-size: 11px; border: 1px solid #00ff41; border-radius: 5px; width: 100%; max-width: 400px; box-sizing: border-box; }
         .debug-line { margin-bottom: 5px; border-bottom: 1px dashed #004400; padding-bottom: 2px; }
         .status-tag { font-weight: bold; color: #fff; background: #d50000; padding: 2px 5px; border-radius: 3px; }
         .status-ok { background: #00c853; }
+        #error-log { color: #ffeb3b; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h3>Portal WiFi León</h3>
-        <p style="font-size: 14px; color: #bbb;">Validación de Acceso Externo</p>
         <button id="connectBtn" class="btn-acceso">CONECTAR AHORA</button>
         <p id="msg" style="font-size: 13px; margin-top: 10px;"></p>
     </div>
 
     <div id="debug-box">
-        <div style="text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #00ff41;">SISTEMA DE MONITOREO V2</div>
-        <div id="debug-content">Iniciando escaneo de parámetros...</div>
+        <div style="text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #00ff41;">SISTEMA DE MONITOREO V3</div>
+        <div id="debug-content">Escaneando parámetros...</div>
+        <div class="debug-line" style="margin-top:10px;"><b>Server Response:</b> <span id="server-status">Waiting...</span></div>
+        <div class="debug-line"><b>Error Log:</b> <span id="error-log">None</span></div>
     </div>
 
     <script>
@@ -40,45 +40,30 @@
             const btn = document.getElementById('connectBtn');
             const msg = document.getElementById('msg');
             const debugContent = document.getElementById('debug-content');
+            const serverStatus = document.getElementById('server-status');
+            const errorLog = document.getElementById('error-log');
 
-            // 1. CAPTURA DE PARÁMETROS (Mapeo Universal)
             const urlParams = new URLSearchParams(window.location.search);
-            
             const ga_ap_mac = urlParams.get('ga_ap_mac') || urlParams.get('ap_mac') || "NO DETECTADO";
             const ga_cmac = urlParams.get('ga_cmac') || urlParams.get('client_mac') || "NO DETECTADO";
-            const ga_Qv = urlParams.get('s') || urlParams.get('ga_Qv') || urlParams.get('ga_request_id') || "";
-            const freeAccess = "true";
-            
-            // 2. ACTUALIZAR VENTANA DE DEBUG
-            const hasToken = ga_Qv !== "" ? '<span class="status-tag status-ok">OK</span>' : '<span class="status-tag">FALTANTE</span>';
-            
+            const ga_Qv = urlParams.get('s') || urlParams.get('ga_Qv') || "";
+
             debugContent.innerHTML = `
                 <div class="debug-line"><b>ga_ap_mac:</b> ${ga_ap_mac}</div>
                 <div class="debug-line"><b>ga_cmac:</b> ${ga_cmac}</div>
-                <div class="debug-line"><b>ga_Qv:</b> ${ga_Qv.substring(0,15)}... ${hasToken}</div>
-                <div class="debug-line"><b>Api_key:</b> ${API_KEY.substring(0,10)}... <span class="status-tag status-ok">CARGADA</span></div>
-                <div class="debug-line"><b>Freeaccess:</b> ${freeAccess}</div>
-                <div class="debug-line"><b>ga_success_url:</b> ${SUCCESS_URL}</div>
-                <div class="debug-line"><b>Header Auth:</b> Bearer + KEY <span class="status-tag status-ok">LISTO</span></div>
+                <div class="debug-line"><b>ga_Qv:</b> ${ga_Qv ? 'CAPTURADO' : 'FALTANTE'}</div>
+                <div class="debug-line"><b>Endpoint:</b> us-e1.api...</div>
             `;
 
-            if (ga_Qv === "") {
-                msg.innerText = "Esperando parámetros del Access Point...";
-                btn.disabled = true;
-            }
-
-            // 3. PROCESO DE LOGUEO
             btn.addEventListener('click', async function() {
                 btn.disabled = true;
-                btn.innerText = "AUTENTICANDO...";
-                msg.style.color = "#00ff41";
-                msg.innerText = "Enviando Header y Payload...";
+                serverStatus.innerText = "Connecting to Cloud...";
+                errorLog.innerText = "None";
 
                 const payload = {
                     ga_ap_mac: ga_ap_mac,
                     ga_cmac: ga_cmac,
                     ga_Qv: ga_Qv,
-                    ga_pass: API_KEY, // Enviado como parámetro adicional (ga_pass)
                     freeAccess: true,
                     ga_success_url: SUCCESS_URL
                 };
@@ -86,30 +71,32 @@
                 try {
                     const response = await fetch(ENDPOINT, {
                         method: 'POST',
-                        mode: 'cors',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + API_KEY // El Header que pide V2
+                            'Authorization': 'Bearer ' + API_KEY
                         },
                         body: JSON.stringify(payload)
                     });
 
-                    const result = await response.json();
-
+                    serverStatus.innerText = "HTTP " + response.status;
+                    
                     if (response.ok) {
-                        msg.innerText = "¡ACCESO CONCEDIDO! REDIRIGIENDO...";
-                        setTimeout(() => { window.location.href = SUCCESS_URL; }, 1500);
+                        msg.innerText = "¡ACCESO CONCEDIDO!";
+                        window.location.href = SUCCESS_URL;
                     } else {
-                        msg.style.color = "#ff4444";
-                        msg.innerText = "ERROR " + response.status + ": " + (result.message || "Invalid Key");
+                        const result = await response.json();
+                        errorLog.innerText = result.message || "Invalid Key/Request";
                         btn.disabled = false;
-                        btn.innerText = "REINTENTAR";
                     }
                 } catch (error) {
-                    msg.style.color = "#ff4444";
-                    msg.innerText = "ERROR DE RED: Bloqueo de Walled Garden o DNS.";
+                    serverStatus.innerText = "FAILED";
+                    // ESTO IDENTIFICA EL ERROR EXACTO:
+                    errorLog.innerText = error.name + ": " + error.message;
+                    
+                    if (error.message.includes('Failed to fetch')) {
+                        msg.innerText = "Revisa el Walled Garden (Dominio bloqueado)";
+                    }
                     btn.disabled = false;
-                    btn.innerText = "REINTENTAR";
                 }
             });
         });
