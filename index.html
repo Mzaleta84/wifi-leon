@@ -1,105 +1,68 @@
-<!DOCTYPE html>
-<!-- saved from url=(0032)https://cp.sysgto.com/index.html -->
-<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portal Cautivo</title>
-    <link rel="stylesheet" href="./Portal Cautivo_files/styles.css">
-</head>
-<body>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. TUS DATOS DE CAMBIUM
+    const API_KEY = "1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae";
+    const ENDPOINT = "https://us-e1.api.cloud.cambiumnetworks.com/api/v2/easypass/external-portal/login";
 
-    <div class="container">
-        <img src="./Portal Cautivo_files/captiveportal-banner.png" alt="Logo" class="logo">
-        
-        <div class="status-icons">
-            <img src="./Portal Cautivo_files/zona-wifi.png" width="150" alt="WiFi">
-            <img src="./Portal Cautivo_files/50minutos.png" width="150" alt="50 min">
-        </div>
+    const btn = document.getElementById('connectBtn');
+    const msg = document.getElementById('msg');
 
-        <div class="terms-box">
-            <p style="text-align: center;">
-                Cada sesión tiene una duración máxima de 50 minutos. Al finalizar, podrás volver a conectarte después de 5 minutos.<br>
-                Para utilizar el servicio de internet gratuito es necesario realizar un registro previo. <br>
-                La cobertura del servicio WiFi es de aproximadamente 30 a 40 metros alrededor del nodo.
-            </p>
-        </div>
+    // 2. FUNCIÓN PARA LEER LA URL DEL E510
+    // El e510 suele mandar el token como 's' o 'ga_request_id'
+    function getParam(names) {
+        const params = new URLSearchParams(window.location.search);
+        for (let name of names) {
+            if (params.has(name)) return params.get(name);
+        }
+        return '';
+    }
 
-        <form id="loginForm" method="post" action="https://us-e1.api.cloud.cambiumnetworks.com/api/v1/easypass/external-portal/login">
-            <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
-            <input type="hidden" name="ga_cmac" id="ga_cmac">
-            <input type="hidden" name="ga_Qv" id="ga_Qv"> 
-            <input type="hidden" name="ga_pass" value="1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae">
-            <input type="hidden" name="freeAccess" value="true">
-            <input type="hidden" name="ga_success_url" value="https://empleo.leon.gob.mx">
-               
-            <button id="connectBtn" class="btn" type="submit" disabled="">Acepto Condiciones y Conectar</button>
-        </form>
-        <div>
-            <p>Para mayor información o para reportar fallas, comunícate al: <br>
-                <a href="tel:4774297446" style="margin-top: 10px; color: #ffffff; text-decoration: underline; font-size: 18px;">4774297446</a>
-            </p>
-        </div>
-    </div>
+    const apMac = getParam(['ga_ap_mac', 'ap_mac']);
+    const clientMac = getParam(['ga_client_mac', 'ga_cmac', 'client_mac']);
+    const token = getParam(['s', 'ga_Qv', 'ga_request_id']);
 
-    <!-- Modal de Encuesta -->
-    <div id="surveyModal" class="modal-overlay active">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Encuesta de ciudadana</h2>
-                <p>Por favor, responde estas breves preguntas para continuar.</p>
-            </div>
-            
-            <form id="surveyForm">
-                <div class="form-group">
-                    <label for="genero">Género</label>
-                    <select id="genero" name="genero" required="">
-                        <option value="" disabled="" selected="">Selecciona una opción</option>
-                        <option value="Hombre">Hombre</option>
-                        <option value="Mujer">Mujer</option>
-                        <option value="No quiero decirlo">No quiero decirlo</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="rango_edad">Rango de edad:</label>
-                    <select id="rango_edad" name="rango_edad" required="">
-                        <option value="" disabled="" selected="">Selecciona una opción</option>
-                        <option value="18-25 años">18-25 años</option>
-                        <option value="26-35 años">26-35 años</option>
-                        <option value="36-45 años">36-45 años</option>
-                        <option value="46-55 años">46-55 años</option>
-                        <option value="56-64 años">56-64 años</option>
-                        <option value="65 y más">65 y más</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="estado_civil">Estado civil:</label>
-                    <select id="estado_civil" name="estado_civil" required="">
-                        <option value="" disabled="" selected="">Selecciona una opción</option>
-                        <option value="Soltero(a)">Soltero(a)</option>
-                        <option value="Casado(a)">Casado(a)</option>
-                        <option value="Divorciado(a)">Divorciado(a)</option>
-                        <option value="Viudo(a)">Viudo(a)</option>
-                        <option value="Unión libre">Unión libre</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="nive_estudios">Nivel de estudios:</label>
-                    <select id="nive_estudios" name="nive_estudios" required="">
-                        <option value="" disabled="" selected="">Selecciona una opción</option>
-                        <option value="Primaria">Primaria</option>
-                        <option value="Secundaria">Secundaria</option>
-                        <option value="Preparatoria o técnico">Preparatoria o técnico</option>
-                        <option value="Técnico Superior universitario">Técnico Superior universitario</option>
-                        <option value="Universidad">Universidad</option>
-                        <option value="Sin estudios">Sin estudios</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-primary">Enviar y Continuar</button>
-            </form>
-        </div>
-    </div>
+    // 3. LOGICA DEL BOTÓN
+    btn.addEventListener('click', async () => {
+        if (!token) {
+            msg.innerText = "Error: No se detectó sesión de WiFi (Token faltante).";
+            msg.style.color = "red";
+            return;
+        }
 
-    <script src="./Portal Cautivo_files/script.js.descarga"></script>
+        btn.disabled = true;
+        msg.innerText = "Autenticando...";
 
+        const data = {
+            ga_ap_mac: apMac,
+            ga_cmac: clientMac,
+            ga_Qv: token,
+            freeAccess: true
+        };
 
-</body></html>
+        try {
+            const response = await fetch(ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + API_KEY
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                msg.innerText = "¡Conectado con éxito!";
+                msg.style.color = "green";
+                // Redirigir a la página final
+                setTimeout(() => {
+                    window.location.href = "https://empleo.leon.gob.mx";
+                }, 1500);
+            } else {
+                const resJson = await response.json();
+                msg.innerText = "Error Cambium: " + (resJson.message || response.status);
+                btn.disabled = false;
+            }
+        } catch (err) {
+            msg.innerText = "Error de red: No se pudo alcanzar la nube.";
+            btn.disabled = false;
+        }
+    });
+});
