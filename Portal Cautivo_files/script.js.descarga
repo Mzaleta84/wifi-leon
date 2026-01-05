@@ -10,86 +10,52 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
 
     /**
-     * Obtiene parámetros de la URL (MAC, Token, etc.)
+     * Obtiene parámetros de la URL
      */
     function getUrlParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
         let val = urlParams.get(name);
-        // Fallback para MAC: busca ga_cmac o ga_client_mac
         if (!val && name === 'ga_cmac') val = urlParams.get('ga_client_mac');
         return val || "";
     }
 
     /**
-     * Verifica si ya respondió la encuesta anteriormente (Cookie por 180 días)
+     * FUNCIÓN CRÍTICA: Verifica si ya respondió para ocultar el modal
      */
     function checkSurveyStatus() {
-        if (document.cookie.split('; ').find(row => row.startsWith(COOKIE_NAME + '='))) {
-            modal.classList.remove('active');
-            connectBtn.disabled = false;
-            connectBtn.style.opacity = "1";
+        const hasCookie = document.cookie.includes(COOKIE_NAME);
+        const hasStorage = localStorage.getItem(COOKIE_NAME);
+
+        if (hasCookie || hasStorage) {
+            console.log("Encuesta detectada como completada. Liberando botón.");
+            // Forzar ocultamiento visual
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            }
+            // Habilitar botón de conectar
+            if (connectBtn) {
+                connectBtn.disabled = false;
+                connectBtn.style.opacity = "1";
+                connectBtn.style.pointerEvents = "auto";
+            }
         }
     }
 
-    // Ejecutar verificación inicial
+    // Ejecutar al cargar la página
     checkSurveyStatus();
 
     /**
-     * Al enviar la encuesta
+     * Manejo del envío de la encuesta
      */
     surveyForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const formData = new FormData(surveyForm);
-        const data = {
-            genero: formData.get('genero'),
-            edad: formData.get('rango_edad'),
-            estado: formData.get('estado_civil'),
-            estudios: formData.get('nivel_estudios'),
-            mac: getUrlParam('ga_cmac'),
-            ap: getUrlParam('ga_ap_mac'),
-            timestamp: new Date().toISOString()
-        };
+        console.log("Enviando encuesta...");
 
-        // 1. Guardar en Cookie para no volver a pedir la encuesta
+        // 1. PERSISTENCIA: Guardar en ambos métodos para evitar el ciclo
         document.cookie = `${COOKIE_NAME}=true; max-age=${60 * 60 * 24 * 180}; path=/`;
+        localStorage.setItem(COOKIE_NAME, 'true');
 
-        // 2. Intentar enviar datos a tu servidor de base de datos
-        try {
-            await fetch(API_ENCUESTA_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-        } catch (error) {
-            console.warn("Fallo el envío a SysGto, pero permitiendo acceso...");
-        }
-
-        // 3. Habilitar botón de conexión y cerrar modal
-        modal.classList.remove('active');
-        connectBtn.disabled = false;
-        connectBtn.style.opacity = "1";
-    });
-
-    /**
-     * Acción del Botón Conectar (Envío a Cambium Cloud)
-     */
-    connectBtn.addEventListener('click', function() {
-        const token = getUrlParam('s');
-        
-        if (!token) {
-            alert("Error: No se recibió token de sesión del punto de acceso. Por favor, reconéctese al WiFi.");
-            return;
-        }
-
-        // Llenar campos ocultos del formulario
-        document.getElementById('ga_ap_mac').value = getUrlParam('ga_ap_mac');
-        document.getElementById('ga_cmac').value = getUrlParam('ga_cmac');
-        document.getElementById('s').value = token;
-
-        console.log("Iniciando validación con Cambium Cloud API...");
-        
-        // Enviar el formulario vía POST estándar
-        loginForm.submit();
-    });
-});
+        // 2. CIERRE INMEDIATO: No esperar a la API para cerrar el modal
+        modal.classList.
