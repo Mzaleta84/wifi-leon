@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portal Cautivo León</title>
+    <title>WiFi Gratuito - León</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,38 +17,37 @@
         </div>
 
         <div class="terms-box">
-            <p style="text-align: center; font-weight: bold;">¡Bienvenido al servicio de WiFi Gratuito!</p>
+            <p style="text-align: center; font-weight: bold;">¡Bienvenido!</p>
             <p style="text-align: center; font-size: 0.9em;">
-                Cada sesión tiene una duración máxima de 50 minutos.<br>
-                Al finalizar, podrás volver a conectarte después de 5 minutos.
+                Acceso gratuito por 50 minutos.<br>
+                Nodos de 30 a 40 metros de cobertura.
             </p>
         </div>
 
         <form id="loginForm" method="post" action="https://us-e1.api.cloud.cambiumnetworks.com/api/v2/easypass/external-portal/login">
             <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
             <input type="hidden" name="ga_cmac" id="ga_cmac">
-            <input type="hidden" name="s" id="s">
+            <input type="hidden" name="ga_Qv" id="ga_Qv">
             
             <input type="hidden" name="api_key" value="1987855587fc6c201b4db6ab28c8fd4ece48f41843d7c88522f0e32e8f0fba9c">
-            
             <input type="hidden" name="freeAccess" value="true">
             <input type="hidden" name="ga_continue_url" value="https://empleo.leon.gob.mx/">
             
-            <button id="connectBtn" class="btn" type="button" disabled style="opacity: 0.5;">Acepto Condiciones y Conectar</button>
+            <button id="connectBtn" class="btn" type="button" disabled style="opacity: 0.5; pointer-events: none;">
+                Acepto Condiciones y Conectar
+            </button>
         </form>
 
         <div class="footer">
-            <p>Reporte de fallas: <br> 
-               <a href="tel:4774297446" style="color:white; font-weight: bold;">4774297446</a>
-            </p>
+            <p>Reporte de fallas: <br> <a href="tel:4774297446" style="color:white; font-weight:bold;">4774297446</a></p>
         </div>
     </div>
 
     <div id="surveyModal" class="modal-overlay active">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 style="color: #003366;">Encuesta Ciudadana</h2>
-                <p>Ayúdanos a mejorar el servicio respondiendo estas preguntas:</p>
+                <h2>Encuesta Ciudadana</h2>
+                <p>Responde estas breves preguntas para navegar:</p>
             </div>
             
             <form id="surveyForm">
@@ -58,18 +57,19 @@
                         <option value="" disabled selected>Selecciona</option>
                         <option value="Hombre">Hombre</option>
                         <option value="Mujer">Mujer</option>
+                        <option value="Otro">Otro</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Rango de Edad:</label>
-                    <select name="rango_edad" required>
+                    <select name="edad" required>
                         <option value="" disabled selected>Selecciona</option>
-                        <option value="18-25">18-25 años</option>
-                        <option value="26-35">26-35 años</option>
-                        <option value="36-45">36-45 años</option>
-                        <option value="46-55">46-55 años</option>
-                        <option value="56+">56 o más</option>
+                        <option value="18-25">18 a 25 años</option>
+                        <option value="26-35">26 a 35 años</option>
+                        <option value="36-45">36 a 45 años</option>
+                        <option value="46-55">46 a 55 años</option>
+                        <option value="56+">56 años o más</option>
                     </select>
                 </div>
 
@@ -79,13 +79,14 @@
                         <option value="" disabled selected>Selecciona</option>
                         <option value="Soltero">Soltero(a)</option>
                         <option value="Casado">Casado(a)</option>
-                        <option value="Union Libre">Unión libre</option>
+                        <option value="Union Libre">Unión Libre</option>
+                        <option value="Divorciado/Viudo">Otro</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Nivel de Estudios:</label>
-                    <select name="nivel_estudios" required>
+                    <select name="estudios" required>
                         <option value="" disabled selected>Selecciona</option>
                         <option value="Primaria">Primaria</option>
                         <option value="Secundaria">Secundaria</option>
@@ -94,7 +95,7 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn-primary">Enviar Encuesta</button>
+                <button type="submit" class="btn-primary">Enviar y Continuar</button>
             </form>
         </div>
     </div>
