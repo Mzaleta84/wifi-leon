@@ -3,32 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WiFi León - Debug V3</title>
+    <title>WiFi León - Debug V4</title>
     <style>
-        body { font-family: sans-serif; background-color: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .card { background: #2d2d2d; padding: 25px; border-radius: 12px; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .btn-acceso { background-color: #00c853; color: white; border: none; padding: 15px; font-size: 18px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
-        .btn-acceso:disabled { background-color: #555; cursor: not-allowed; }
-        #debug-box { margin-top: 20px; padding: 15px; background: #000; color: #00ff41; font-family: 'Courier New', monospace; font-size: 11px; border: 1px solid #00ff41; border-radius: 5px; width: 100%; max-width: 400px; box-sizing: border-box; }
-        .debug-line { margin-bottom: 5px; border-bottom: 1px dashed #004400; padding-bottom: 2px; }
-        .status-tag { font-weight: bold; color: #fff; background: #d50000; padding: 2px 5px; border-radius: 3px; }
-        .status-ok { background: #00c853; }
-        #error-log { color: #ffeb3b; font-style: italic; }
+        body { font-family: sans-serif; background-color: #0a0a0a; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { background: #1e1e1e; padding: 25px; border-radius: 15px; text-align: center; width: 100%; max-width: 400px; border: 1px solid #333; }
+        .btn-acceso { background-color: #007bff; color: white; border: none; padding: 18px; font-size: 18px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        .btn-acceso:disabled { background-color: #444; color: #888; }
+        #debug-box { margin-top: 20px; padding: 15px; background: #000; color: #00ff41; font-family: monospace; font-size: 11px; border: 1px solid #00ff41; border-radius: 5px; width: 100%; max-width: 400px; box-sizing: border-box; }
+        .debug-line { margin-bottom: 6px; border-bottom: 1px solid #111; padding-bottom: 2px; display: flex; justify-content: space-between; }
+        .val { color: #fff; text-align: right; overflow-wrap: anywhere; max-width: 60%; }
+        #error-msg { color: #ff3333; font-weight: bold; margin-top: 10px; font-size: 12px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>Portal WiFi León</h3>
+        <h3>WiFi León - Acceso</h3>
         <button id="connectBtn" class="btn-acceso">CONECTAR AHORA</button>
-        <p id="msg" style="font-size: 13px; margin-top: 10px;"></p>
+        <div id="error-msg"></div>
     </div>
 
     <div id="debug-box">
-        <div style="text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #00ff41;">SISTEMA DE MONITOREO V3</div>
-        <div id="debug-content">Escaneando parámetros...</div>
-        <div class="debug-line" style="margin-top:10px;"><b>Server Response:</b> <span id="server-status">Waiting...</span></div>
-        <div class="debug-line"><b>Error Log:</b> <span id="error-log">None</span></div>
+        <div style="text-align: center; border-bottom: 1px solid #00ff41; padding-bottom: 5px; margin-bottom: 10px;">ANALIZADOR DE RED V4</div>
+        <div class="debug-line"><span>AP MAC:</span> <span class="val" id="d-ap">...</span></div>
+        <div class="debug-line"><span>CLIENT MAC:</span> <span class="val" id="d-cm">...</span></div>
+        <div class="debug-line"><span>TOKEN ga_Qv:</span> <span class="val" id="d-qv">...</span></div>
+        <div class="debug-line"><span>API KEY:</span> <span class="val">1ccf7c8b...</span></div>
+        <div class="debug-line"><span>SERVER:</span> <span class="val" id="d-srv">Esperando clic...</span></div>
+        <div class="debug-line"><span>DETALLE ERROR:</span> <span class="val" id="d-err" style="color: #ffea00;">Ninguno</span></div>
     </div>
 
     <script>
@@ -38,27 +40,24 @@
             const SUCCESS_URL = "https://empleo.leon.gob.mx";
 
             const btn = document.getElementById('connectBtn');
-            const msg = document.getElementById('msg');
-            const debugContent = document.getElementById('debug-content');
-            const serverStatus = document.getElementById('server-status');
-            const errorLog = document.getElementById('error-log');
+            const errorMsg = document.getElementById('error-msg');
+            const dSrv = document.getElementById('d-srv');
+            const dErr = document.getElementById('d-err');
 
             const urlParams = new URLSearchParams(window.location.search);
-            const ga_ap_mac = urlParams.get('ga_ap_mac') || urlParams.get('ap_mac') || "NO DETECTADO";
-            const ga_cmac = urlParams.get('ga_cmac') || urlParams.get('client_mac') || "NO DETECTADO";
+            const ga_ap_mac = urlParams.get('ga_ap_mac') || urlParams.get('ap_mac') || "N/A";
+            const ga_cmac = urlParams.get('ga_cmac') || urlParams.get('client_mac') || "N/A";
             const ga_Qv = urlParams.get('s') || urlParams.get('ga_Qv') || "";
 
-            debugContent.innerHTML = `
-                <div class="debug-line"><b>ga_ap_mac:</b> ${ga_ap_mac}</div>
-                <div class="debug-line"><b>ga_cmac:</b> ${ga_cmac}</div>
-                <div class="debug-line"><b>ga_Qv:</b> ${ga_Qv ? 'CAPTURADO' : 'FALTANTE'}</div>
-                <div class="debug-line"><b>Endpoint:</b> us-e1.api...</div>
-            `;
+            document.getElementById('d-ap').innerText = ga_ap_mac;
+            document.getElementById('d-cm').innerText = ga_cmac;
+            document.getElementById('d-qv').innerText = ga_Qv ? "Capturado OK" : "Faltante";
 
             btn.addEventListener('click', async function() {
                 btn.disabled = true;
-                serverStatus.innerText = "Connecting to Cloud...";
-                errorLog.innerText = "None";
+                errorMsg.innerText = "";
+                dSrv.innerText = "Enviando POST...";
+                dErr.innerText = "Iniciando Fetch";
 
                 const payload = {
                     ga_ap_mac: ga_ap_mac,
@@ -69,8 +68,12 @@
                 };
 
                 try {
+                    const controller = new AbortController();
+                    const id = setTimeout(() => controller.abort(), 8000); // Timeout de 8 seg
+
                     const response = await fetch(ENDPOINT, {
                         method: 'POST',
+                        signal: controller.signal,
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + API_KEY
@@ -78,24 +81,28 @@
                         body: JSON.stringify(payload)
                     });
 
-                    serverStatus.innerText = "HTTP " + response.status;
-                    
+                    clearTimeout(id);
+                    dSrv.innerText = "HTTP " + response.status;
+
                     if (response.ok) {
-                        msg.innerText = "¡ACCESO CONCEDIDO!";
+                        dSrv.innerText = "EXITO (200)";
                         window.location.href = SUCCESS_URL;
                     } else {
-                        const result = await response.json();
-                        errorLog.innerText = result.message || "Invalid Key/Request";
+                        const errJson = await response.json();
+                        dErr.innerText = errJson.message || "Error de validación";
                         btn.disabled = false;
                     }
                 } catch (error) {
-                    serverStatus.innerText = "FAILED";
-                    // ESTO IDENTIFICA EL ERROR EXACTO:
-                    errorLog.innerText = error.name + ": " + error.message;
-                    
-                    if (error.message.includes('Failed to fetch')) {
-                        msg.innerText = "Revisa el Walled Garden (Dominio bloqueado)";
+                    dSrv.innerText = "ERROR DE RED";
+                    // DETECTOR DE CAUSA REAL:
+                    if (error.name === 'AbortError') {
+                        dErr.innerText = "Timeout (Servidor lento o bloqueado)";
+                    } else if (!window.navigator.onLine) {
+                        dErr.innerText = "Dispositivo Offline";
+                    } else {
+                        dErr.innerText = error.message;
                     }
+                    errorMsg.innerText = "⚠️ La red WiFi bloqueó la comunicación con Cambium. Revisa Walled Garden.";
                     btn.disabled = false;
                 }
             });
