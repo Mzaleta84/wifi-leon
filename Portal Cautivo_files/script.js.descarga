@@ -116,13 +116,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const redir = "https://empleo.leon.gob.mx";
 
             // 3. URL DE LOGIN CORRECTA (config/login.php es el endpoint de autenticación)
-            const finalUrl = `https://${server}/config/login.php?` + 
-                             `freeAccess=true&` +
-                             `ga_ap_mac=${encodeURIComponent(ap)}&` +
-                             `ga_cmac=${encodeURIComponent(client)}&` +
-                             `ga_ssid=${encodeURIComponent(ssid)}&` +
-                             `s=${encodeURIComponent(session)}&` +
-                             `ga_continue_url=${encodeURIComponent(redir)}`;
+            const finalUrl = `https://${server}/guestportal/login?` + 
+                 `freeAccess=true&` +
+                 `ga_ap_mac=${encodeURIComponent(ap)}&` +
+                 `ga_cmac=${encodeURIComponent(client)}&` +
+                 `ga_ssid=${encodeURIComponent(ssid)}&` +
+                 `s=${encodeURIComponent(session)}&` +
+                 `ga_continue_url=${encodeURIComponent(redir)}`;
 
             console.log("Iniciando acceso Wi-Fi...");
             window.location.href = finalUrl;
