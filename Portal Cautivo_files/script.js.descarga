@@ -1,91 +1,25 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Configuraciones
-    const COOKIE_NAME = 'survey_leon_completed';
-    const API_SURVEY_URL = 'https://portal.sysgto.com/encuesta';
     
-    // Referencias DOM
-    const modal = document.getElementById('surveyModal');
     const connectBtn = document.getElementById('connectBtn');
-    const surveyForm = document.getElementById('surveyForm');
     const loginForm = document.getElementById('loginForm');
 
     /**
-     * Extrae parámetros de la URL enviados por el AP
+     * Extrae parámetros de la URL enviados por el Punto de Acceso
      */
     function getUrlParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
         let val = urlParams.get(name);
-        // Fallback para MAC
+        
+        // Mapeo de MAC: Intenta ga_cmac y ga_client_mac (usados por Cambium)
         if (!val && name === 'ga_cmac') val = urlParams.get('ga_client_mac');
         return val || "";
     }
 
     /**
-     * Verifica si el usuario ya completó la encuesta para no mostrarla de nuevo
-     */
-    function checkPersistence() {
-        const isCompleted = document.cookie.includes(COOKIE_NAME) || localStorage.getItem(COOKIE_NAME);
-        if (isCompleted) {
-            if (modal) {
-                modal.classList.remove('active');
-                modal.style.display = 'none';
-            }
-            if (connectBtn) {
-                connectBtn.disabled = false;
-                connectBtn.style.opacity = "1";
-                connectBtn.style.pointerEvents = "auto";
-            }
-        }
-    }
-
-    // Ejecutar al inicio
-    checkPersistence();
-
-    /**
-     * Manejo del formulario de la Encuesta
-     */
-    surveyForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        // 1. Guardar persistencia de inmediato para evitar ciclos
-        document.cookie = `${COOKIE_NAME}=true; max-age=${60*60*24*180}; path=/`;
-        localStorage.setItem(COOKIE_NAME, 'true');
-
-        // 2. Liberar el botón de conexión y ocultar modal
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-        connectBtn.disabled = false;
-        connectBtn.style.opacity = "1";
-        connectBtn.style.pointerEvents = "auto";
-
-        // 3. Recopilar datos para SysGto
-        const formData = new FormData(surveyForm);
-        const payload = {
-            genero: formData.get('genero'),
-            edad: formData.get('edad'),
-            estado: formData.get('estado_civil'),
-            estudios: formData.get('estudios'),
-            mac: getUrlParam('ga_cmac'),
-            ap_mac: getUrlParam('ga_ap_mac')
-        };
-
-        // 4. Enviar a tu API de encuestas (Asíncrono para no bloquear)
-        try {
-            fetch(API_SURVEY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        } catch (err) {
-            console.warn("Error enviando encuesta, pero se permite navegación.");
-        }
-    });
-
-    /**
-     * Manejo del Botón Conectar (POST a Cambium)
+     * Manejo del Botón Conectar
      */
     connectBtn.addEventListener('click', function() {
-        // En V2, el token 's' debe enviarse como 'ga_Qv'
+        // En la API V2, el parámetro 's' de la URL debe enviarse como 'ga_Qv'
         const sessionToken = getUrlParam('s');
         
         if (!sessionToken) {
@@ -93,14 +27,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Llenado de campos ocultos del formulario
+        // Llenado de campos ocultos del formulario antes de enviar
         document.getElementById('ga_ap_mac').value = getUrlParam('ga_ap_mac');
         document.getElementById('ga_cmac').value = getUrlParam('ga_cmac');
         document.getElementById('ga_Qv').value = sessionToken;
 
-        console.log("Autenticando usuario en Cambium Cloud API...");
+        console.log("Enviando autorización a Cambium Cloud API...");
         
-        // El navegador hace el POST directo al servidor de Cambium
+        // Realiza el POST directo al servidor de Cambium
         loginForm.submit();
     });
 });
