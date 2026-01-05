@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const surveyForm = document.getElementById('surveyForm');
     const loginForm = document.getElementById('loginForm');
 
-    // Función para obtener parámetros de la URL
+    // Helper para URL params
     function getUrlParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name) || "";
@@ -26,13 +26,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (parts.length === 2) return parts.pop().split(";").shift();
     }
 
-    // Control del Modal
+    // Estado inicial del Modal
     if (getCookie(COOKIE_NAME)) {
         modal.classList.remove('active');
         connectBtn.disabled = false;
+        connectBtn.style.opacity = "1";
     }
 
-    // Al enviar la encuesta
+    // Submit de la Encuesta
     surveyForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(surveyForm);
@@ -40,19 +41,21 @@ document.addEventListener('DOMContentLoaded', function() {
             genero: formData.get('genero'),
             edad: formData.get('rango_edad'),
             estado: formData.get('estado_civil'),
-            mac: getUrlParam('ga_cmac') || getUrlParam('ga_client_mac')
+            estudios: formData.get('nive_estudios'),
+            mac: getUrlParam('ga_cmac') || getUrlParam('ga_client_mac'),
+            ssid: getUrlParam('ga_ssid')
         };
 
+        // Guardar y sincronizar con SysGto
+        localStorage.setItem('pending_survey', JSON.stringify(data));
         try {
-            // Guardamos localmente e intentamos enviar a SysGto
-            localStorage.setItem('pending_survey', JSON.stringify(data));
             await fetch(API_URL, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
         } catch (err) {
-            console.log("Modo offline: Datos guardados");
+            console.warn("Falla de red (encuesta guardada localmente)");
         }
 
         setCookie(COOKIE_NAME, 'true', 180);
@@ -61,15 +64,25 @@ document.addEventListener('DOMContentLoaded', function() {
         connectBtn.style.opacity = "1";
     });
 
-    // LÓGICA DE CONEXIÓN (POST)
+    // LÓGICA DE CONEXIÓN API X-EASYPASS
     connectBtn.addEventListener('click', function() {
-        // Llenamos los campos ocultos del formulario con la info de la URL
-        document.getElementById('ga_ap_mac').value = getUrlParam('ga_ap_mac');
-        document.getElementById('ga_cmac').value = getUrlParam('ga_cmac') || getUrlParam('ga_client_mac');
-        document.getElementById('s').value = getUrlParam('s');
-        document.getElementById('ga_ssid').value = getUrlParam('ga_ssid');
+        // Mapeo de parámetros desde la URL al formulario
+        const apMac = getUrlParam('ga_ap_mac');
+        const clientMac = getUrlParam('ga_cmac') || getUrlParam('ga_client_mac');
+        const session = getUrlParam('s');
+        const ssid = getUrlParam('ga_ssid');
 
-        console.log("Enviando credenciales a Cambium...");
-        loginForm.submit(); // Disparamos el POST
+        if (!session) {
+            alert("Error: Sesión no encontrada. Por favor reconéctese al Wi-Fi.");
+            return;
+        }
+
+        document.getElementById('ga_ap_mac').value = apMac;
+        document.getElementById('ga_cmac').value = clientMac;
+        document.getElementById('s').value = session;
+        document.getElementById('ga_ssid').value = ssid;
+
+        console.log("Autenticando en Cambium API con Key...");
+        loginForm.submit();
     });
 });
