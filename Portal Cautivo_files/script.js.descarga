@@ -1,40 +1,71 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const COOKIE_NAME = 'survey_completed_leon';
+    const API_SYSGTO = 'https://portal.sysgto.com/encuesta';
     
+    const modal = document.getElementById('surveyModal');
     const connectBtn = document.getElementById('connectBtn');
+    const surveyForm = document.getElementById('surveyForm');
     const loginForm = document.getElementById('loginForm');
 
-    /**
-     * Extrae parámetros de la URL enviados por el Punto de Acceso
-     */
-    function getUrlParam(name) {
+    // Función para obtener parámetros de la URL
+    function getParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
         let val = urlParams.get(name);
-        
-        // Mapeo de MAC: Intenta ga_cmac y ga_client_mac (usados por Cambium)
+        // Fallback para MAC si el AP usa ga_client_mac
         if (!val && name === 'ga_cmac') val = urlParams.get('ga_client_mac');
         return val || "";
     }
 
-    /**
-     * Manejo del Botón Conectar
-     */
-    connectBtn.addEventListener('click', function() {
-        // En la API V2, el parámetro 's' de la URL debe enviarse como 'ga_Qv'
-        const sessionToken = getUrlParam('s');
+    // 1. Llenar campos ocultos inmediatamente
+    if (loginForm) {
+        document.getElementById('ga_ap_mac').value = getParam('ga_ap_mac');
+        document.getElementById('ga_cmac').value = getParam('ga_cmac');
+        // IMPORTANTE: En API v2, el token 's' se envía como 'ga_Qv'
+        document.getElementById('ga_Qv').value = getParam('s'); 
+    }
+
+    // 2. Verificar si ya hizo la encuesta (Evita el ciclo)
+    const alreadyDone = document.cookie.includes(COOKIE_NAME) || localStorage.getItem(COOKIE_NAME);
+    if (alreadyDone) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        connectBtn.disabled = false;
+    }
+
+    // 3. Manejo de la Encuesta
+    surveyForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        if (!sessionToken) {
-            alert("Error: No se detectó sesión activa. Por favor, apaga y enciende tu WiFi.");
-            return;
+        const formData = new FormData(surveyForm);
+        const data = {
+            genero: formData.get('genero'),
+            rango_edad: formData.get('rango_edad'),
+            nive_estudios: formData.get('nive_estudios'),
+            mac: getParam('ga_cmac'),
+            ap: getParam('ga_ap_mac')
+        };
+
+        // Guardar persistencia local para que no vuelva a salir
+        document.cookie = `${COOKIE_NAME}=true; max-age=${60*60*24*180}; path=/`;
+        localStorage.setItem(COOKIE_NAME, 'true');
+
+        // Intentar enviar a SysGto
+        try {
+            await fetch(API_SYSGTO, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+        } catch (err) {
+            console.log("Error enviando encuesta, continuando...");
         }
 
-        // Llenado de campos ocultos del formulario antes de enviar
-        document.getElementById('ga_ap_mac').value = getUrlParam('ga_ap_mac');
-        document.getElementById('ga_cmac').value = getUrlParam('ga_cmac');
-        document.getElementById('ga_Qv').value = sessionToken;
-
-        console.log("Enviando autorización a Cambium Cloud API...");
-        
-        // Realiza el POST directo al servidor de Cambium
-        loginForm.submit();
+        // Liberar botón y ocultar modal
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        connectBtn.disabled = false;
     });
+
+    // 4. El botón 'Connect' simplemente hace el submit al action del form
+    // No necesita JS adicional porque el form ya tiene el action de Cambium
 });
