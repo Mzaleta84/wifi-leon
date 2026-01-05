@@ -1,71 +1,130 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const COOKIE_NAME = 'survey_completed_leon';
-    const API_SYSGTO = 'https://portal.sysgto.com/encuesta';
+    const COOKIE_NAME = 'survey_completed';
+    const COOKIE_DURATION_DAYS = 180;
+    const API_URL = 'https://portal.sysgto.com/encuesta';
     
     const modal = document.getElementById('surveyModal');
     const connectBtn = document.getElementById('connectBtn');
     const surveyForm = document.getElementById('surveyForm');
     const loginForm = document.getElementById('loginForm');
-
-    // Función para obtener parámetros de la URL
-    function getParam(name) {
+    
+    // Función mejorada para capturar parámetros (Soporta múltiples nombres por variable)
+    function getVariable(names) {
         const urlParams = new URLSearchParams(window.location.search);
-        let val = urlParams.get(name);
-        // Fallback para MAC si el AP usa ga_client_mac
-        if (!val && name === 'ga_cmac') val = urlParams.get('ga_client_mac');
-        return val || "";
+        for (let name of names) {
+            if (urlParams.has(name)) return decodeURIComponent(urlParams.get(name));
+        }
+        return '';
     }
 
-    // 1. Llenar campos ocultos inmediatamente
+    // Llenado inteligente del formulario antes de cualquier acción
     if (loginForm) {
-        document.getElementById('ga_ap_mac').value = getParam('ga_ap_mac');
-        document.getElementById('ga_cmac').value = getParam('ga_cmac');
-        // IMPORTANTE: En API v2, el token 's' se envía como 'ga_Qv'
-        document.getElementById('ga_Qv').value = getParam('s'); 
+        // Mapeo para MAC del AP
+        const apMac = getVariable(['ga_ap_mac', 'ap_mac', 'apmac']);
+        // Mapeo para MAC del Cliente
+        const clientMac = getVariable(['ga_client_mac', 'ga_cmac', 'client_mac', 'cmac']);
+        // Mapeo para Sesión (Token) -> Se asigna a ga_Qv para API V2
+        const sessionToken = getVariable(['s', 'ga_Qv', 'ga_request_id', 'token']);
+        
+        // Asignación a los inputs ocultos
+        if (document.getElementById('ga_ap_mac')) document.getElementById('ga_ap_mac').value = apMac;
+        if (document.getElementById('ga_cmac')) document.getElementById('ga_cmac').value = clientMac;
+        if (document.getElementById('ga_Qv')) document.getElementById('ga_Qv').value = sessionToken;
+        
+        // Otros campos adicionales si existen en tu HTML
+        const ssid = getVariable(['ga_ssid', 'ssid']);
+        if (document.getElementById('ga_ssid')) document.getElementById('ga_ssid').value = ssid;
     }
-
-    // 2. Verificar si ya hizo la encuesta (Evita el ciclo)
-    const alreadyDone = document.cookie.includes(COOKIE_NAME) || localStorage.getItem(COOKIE_NAME);
-    if (alreadyDone) {
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-        connectBtn.disabled = false;
+    
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
     }
-
-    // 3. Manejo de la Encuesta
+    
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for(let i=0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    }
+    
+    function showModal() {
+        if (modal) {
+            modal.classList.add('active');
+            connectBtn.disabled = true;
+        }
+    }
+    
+    function hideModal() {
+        if (modal) {
+            modal.classList.remove('active');
+            connectBtn.disabled = false;
+        }
+    }
+    
+    async function attemptSync() {
+        const pendingData = localStorage.getItem('pending_survey_data');
+        if (pendingData) {
+            try {
+                const data = JSON.parse(pendingData);
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    localStorage.removeItem('pending_survey_data');
+                    return true;
+                }
+            } catch (error) {
+                console.warn('Sync pending...', error);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // Intentar sincronizar datos pendientes al cargar
+    attemptSync();
+    
+    // Lógica de visualización inicial
+    const hasCookie = getCookie(COOKIE_NAME);
+    if (hasCookie) {
+        hideModal();
+    } else {
+        showModal();
+    }
+    
+    // Manejo de la encuesta
     surveyForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const formData = new FormData(surveyForm);
-        const data = {
+        const surveyData = {
             genero: formData.get('genero'),
             rango_edad: formData.get('rango_edad'),
+            estado_civil: formData.get('estado_civil'),
             nive_estudios: formData.get('nive_estudios'),
-            mac: getParam('ga_cmac'),
-            ap: getParam('ga_ap_mac')
+            mac: getVariable(['ga_client_mac', 'ga_cmac', 'client_mac']) || '$mac$', 
+            ap_mac: getVariable(['ga_ap_mac', 'ap_mac']) || '$ap_mac$'
         };
-
-        // Guardar persistencia local para que no vuelva a salir
-        document.cookie = `${COOKIE_NAME}=true; max-age=${60*60*24*180}; path=/`;
-        localStorage.setItem(COOKIE_NAME, 'true');
-
-        // Intentar enviar a SysGto
-        try {
-            await fetch(API_SYSGTO, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-        } catch (err) {
-            console.log("Error enviando encuesta, continuando...");
-        }
-
-        // Liberar botón y ocultar modal
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-        connectBtn.disabled = false;
+        
+        localStorage.setItem('pending_survey_data', JSON.stringify(surveyData));
+        
+        // Intentar enviar, si falla igual permitimos continuar (para no bloquear al usuario)
+        const success = await attemptSync();
+        
+        setCookie(COOKIE_NAME, 'true', COOKIE_DURATION_DAYS);
+        hideModal();
     });
-
-    // 4. El botón 'Connect' simplemente hace el submit al action del form
-    // No necesita JS adicional porque el form ya tiene el action de Cambium
 });
