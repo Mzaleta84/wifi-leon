@@ -18,16 +18,19 @@
 
         <div class="terms-box">
             <p style="text-align: center;">
-                Cada sesión tiene una duración máxima de 50 minutos. Al finalizar, podrás volver a conectarte después de 5 minutos.<br>
+                Cada sesión tiene una duración máxima de 50 minutos.<br>
                 La cobertura del servicio WiFi es de 30 a 40 metros alrededor del nodo.
             </p>
         </div>
 
-        <form id="loginForm" method="post" action="https://us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com/guestportal/login">
+        <form id="loginForm" method="post" action="https://us-e1.api.cloud.cambiumnetworks.com/api/v2/ext-portals/login">
             <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
             <input type="hidden" name="ga_cmac" id="ga_cmac">
             <input type="hidden" name="s" id="s">
             <input type="hidden" name="ga_ssid" id="ga_ssid">
+            
+            <input type="hidden" name="api_key" value="1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae">
+            
             <input type="hidden" name="freeAccess" value="true">
             <input type="hidden" name="ga_continue_url" value="https://empleo.leon.gob.mx">
             
@@ -35,7 +38,7 @@
         </form>
 
         <div class="footer">
-            <p>Reporte de fallas: <br> <a href="tel:4774297446" style="color:white;">4774297446</a></p>
+            <p>Reporte de fallas: <br> <a href="tel:4774297446" style="color:white; text-decoration: underline;">4774297446</a></p>
         </div>
     </div>
 
@@ -43,7 +46,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Encuesta ciudadana</h2>
-                <p>Responde estas breves preguntas para continuar.</p>
+                <p>Por favor, responde para continuar.</p>
             </div>
             
             <form id="surveyForm">
@@ -62,7 +65,8 @@
                         <option value="18-25">18-25 años</option>
                         <option value="26-35">26-35 años</option>
                         <option value="36-45">36-45 años</option>
-                        <option value="46+">46 o más</option>
+                        <option value="46-55">46-55 años</option>
+                        <option value="56+">56 o más</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -72,6 +76,16 @@
                         <option value="Soltero">Soltero(a)</option>
                         <option value="Casado">Casado(a)</option>
                         <option value="Union Libre">Unión libre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nivel de estudios:</label>
+                    <select name="nive_estudios" required>
+                        <option value="" disabled selected>Selecciona</option>
+                        <option value="Primaria">Primaria</option>
+                        <option value="Secundaria">Secundaria</option>
+                        <option value="Preparatoria">Preparatoria</option>
+                        <option value="Universidad">Universidad</option>
                     </select>
                 </div>
                 <button type="submit" class="btn-primary">Enviar y Continuar</button>
