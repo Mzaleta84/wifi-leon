@@ -19,19 +19,23 @@
         <div class="terms-box">
             <p style="text-align: center;">
                 Cada sesión tiene una duración máxima de 50 minutos. Al finalizar, podrás volver a conectarte después de 5 minutos.<br>
-                Para utilizar el servicio de internet gratuito es necesario realizar un registro previo. <br>
-                La cobertura del servicio WiFi es de aproximadamente 30 a 40 metros alrededor del nodo.
+                La cobertura del servicio WiFi es de 30 a 40 metros alrededor del nodo.
             </p>
         </div>
 
-        <div id="loginArea">
+        <form id="loginForm" method="post" action="https://us-e1-s30-prewqmt4q4.cloud.cambiumnetworks.com/guestportal/login">
+            <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
+            <input type="hidden" name="ga_cmac" id="ga_cmac">
+            <input type="hidden" name="s" id="s">
+            <input type="hidden" name="ga_ssid" id="ga_ssid">
+            <input type="hidden" name="freeAccess" value="true">
+            <input type="hidden" name="ga_continue_url" value="https://empleo.leon.gob.mx">
+            
             <button id="connectBtn" class="btn" type="button" disabled>Acepto Condiciones y Conectar</button>
-        </div>
+        </form>
 
-        <div class="info-footer">
-            <p>Para mayor información o para reportar fallas, comunícate al: <br>
-                <a href="tel:4774297446" style="color: #ffffff; text-decoration: underline; font-size: 18px;">4774297446</a>
-            </p>
+        <div class="footer">
+            <p>Reporte de fallas: <br> <a href="tel:4774297446" style="color:white;">4774297446</a></p>
         </div>
     </div>
 
@@ -39,51 +43,35 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Encuesta ciudadana</h2>
-                <p>Por favor, responde estas breves preguntas para continuar.</p>
+                <p>Responde estas breves preguntas para continuar.</p>
             </div>
             
             <form id="surveyForm">
                 <div class="form-group">
-                    <label for="genero">Género</label>
-                    <select id="genero" name="genero" required>
-                        <option value="" disabled selected>Selecciona una opción</option>
+                    <label>Género</label>
+                    <select name="genero" required>
+                        <option value="" disabled selected>Selecciona</option>
                         <option value="Hombre">Hombre</option>
                         <option value="Mujer">Mujer</option>
-                        <option value="No quiero decirlo">No quiero decirlo</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="rango_edad">Rango de edad:</label>
-                    <select id="rango_edad" name="rango_edad" required>
-                        <option value="" disabled selected>Selecciona una opción</option>
-                        <option value="18-25 años">18-25 años</option>
-                        <option value="26-35 años">26-35 años</option>
-                        <option value="36-45 años">36-45 años</option>
-                        <option value="46-55 años">46-55 años</option>
-                        <option value="56-64 años">56-64 años</option>
-                        <option value="65 y más">65 y más</option>
+                    <label>Rango de edad:</label>
+                    <select name="rango_edad" required>
+                        <option value="" disabled selected>Selecciona</option>
+                        <option value="18-25">18-25 años</option>
+                        <option value="26-35">26-35 años</option>
+                        <option value="36-45">36-45 años</option>
+                        <option value="46+">46 o más</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="estado_civil">Estado civil:</label>
-                    <select id="estado_civil" name="estado_civil" required>
-                        <option value="" disabled selected>Selecciona una opción</option>
-                        <option value="Soltero(a)">Soltero(a)</option>
-                        <option value="Casado(a)">Casado(a)</option>
-                        <option value="Divorciado(a)">Divorciado(a)</option>
-                        <option value="Viudo(a)">Viudo(a)</option>
-                        <option value="Unión libre">Unión libre</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="nive_estudios">Nivel de estudios:</label>
-                    <select id="nive_estudios" name="nive_estudios" required>
-                        <option value="" disabled selected>Selecciona una opción</option>
-                        <option value="Primaria">Primaria</option>
-                        <option value="Secundaria">Secundaria</option>
-                        <option value="Preparatoria o técnico">Preparatoria o técnico</option>
-                        <option value="Universidad">Universidad</option>
-                        <option value="Sin estudios">Sin estudios</option>
+                    <label>Estado civil:</label>
+                    <select name="estado_civil" required>
+                        <option value="" disabled selected>Selecciona</option>
+                        <option value="Soltero">Soltero(a)</option>
+                        <option value="Casado">Casado(a)</option>
+                        <option value="Union Libre">Unión libre</option>
                     </select>
                 </div>
                 <button type="submit" class="btn-primary">Enviar y Continuar</button>
