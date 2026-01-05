@@ -1,91 +1,97 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
+<!-- saved from url=(0032)https://cp.sysgto.com/index.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portal Cautivo León</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Portal Cautivo</title>
+    <link rel="stylesheet" href="./Portal Cautivo_files/styles.css">
 </head>
 <body>
 
     <div class="container">
-        <img src="captiveportal-banner.png" alt="Logo" class="logo">
+        <img src="./Portal Cautivo_files/captiveportal-banner.png" alt="Logo" class="logo">
         
         <div class="status-icons">
-            <img src="zona-wifi.png" width="150" alt="WiFi">
-            <img src="50minutos.png" width="150" alt="50 min">
+            <img src="./Portal Cautivo_files/zona-wifi.png" width="150" alt="WiFi">
+            <img src="./Portal Cautivo_files/50minutos.png" width="150" alt="50 min">
         </div>
 
         <div class="terms-box">
             <p style="text-align: center;">
-                Cada sesión tiene una duración máxima de 50 minutos.<br>
-                La cobertura del servicio WiFi es de 30 a 40 metros alrededor del nodo.
+                Cada sesión tiene una duración máxima de 50 minutos. Al finalizar, podrás volver a conectarte después de 5 minutos.<br>
+                Para utilizar el servicio de internet gratuito es necesario realizar un registro previo. <br>
+                La cobertura del servicio WiFi es de aproximadamente 30 a 40 metros alrededor del nodo.
             </p>
         </div>
 
         <form id="loginForm" method="post" action="https://us-e1.api.cloud.cambiumnetworks.com/api/v2/ext-portals/login">
-            <input type="hidden" name="ga_ap_mac" id="ga_ap_mac">
-            <input type="hidden" name="ga_cmac" id="ga_cmac">
-            <input type="hidden" name="s" id="s">
-            <input type="hidden" name="ga_ssid" id="ga_ssid">
+            <input type="hidden" name="ga_ap_mac" value="">
+            <input type="hidden" name="ga_client_mac" value="">
+            <input type="hidden" name="ga_nas_id" value="">
+            <input type="hidden" name="ga_ssid" value="">
+            <input type="hidden" name="ga_request_id" value="">
+            <input type="hidden" name="ga_success_url" value="https://empleo.leon.gob.mx">
             
-            <input type="hidden" name="api_key" value="1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae">
-            
-            <input type="hidden" name="freeAccess" value="true">
-            <input type="hidden" name="ga_continue_url" value="https://empleo.leon.gob.mx/">
-            
-            <button id="connectBtn" class="btn" type="button" disabled>Acepto Condiciones y Conectar</button>
+            <button id="connectBtn" class="btn" type="submit" disabled="">Acepto Condiciones y Conectar</button>
         </form>
-
-        <div class="footer">
-            <p>Reporte de fallas: <br> <a href="tel:4774297446" style="color:white; text-decoration: underline;">4774297446</a></p>
+        <div>
+            <p>Para mayor información o para reportar fallas, comunícate al: <br>
+                <a href="tel:4774297446" style="margin-top: 10px; color: #ffffff; text-decoration: underline; font-size: 18px;">4774297446</a>
+            </p>
         </div>
     </div>
 
+    <!-- Modal de Encuesta -->
     <div id="surveyModal" class="modal-overlay active">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Encuesta ciudadana</h2>
-                <p>Por favor, responde para continuar.</p>
+                <h2>Encuesta de ciudadana</h2>
+                <p>Por favor, responde estas breves preguntas para continuar.</p>
             </div>
             
             <form id="surveyForm">
                 <div class="form-group">
-                    <label>Género</label>
-                    <select name="genero" required>
-                        <option value="" disabled selected>Selecciona</option>
+                    <label for="genero">Género</label>
+                    <select id="genero" name="genero" required="">
+                        <option value="" disabled="" selected="">Selecciona una opción</option>
                         <option value="Hombre">Hombre</option>
                         <option value="Mujer">Mujer</option>
+                        <option value="No quiero decirlo">No quiero decirlo</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Rango de edad:</label>
-                    <select name="rango_edad" required>
-                        <option value="" disabled selected>Selecciona</option>
-                        <option value="18-25">18-25 años</option>
-                        <option value="26-35">26-35 años</option>
-                        <option value="36-45">36-45 años</option>
-                        <option value="46-55">46-55 años</option>
-                        <option value="56+">56 o más</option>
+                    <label for="rango_edad">Rango de edad:</label>
+                    <select id="rango_edad" name="rango_edad" required="">
+                        <option value="" disabled="" selected="">Selecciona una opción</option>
+                        <option value="18-25 años">18-25 años</option>
+                        <option value="26-35 años">26-35 años</option>
+                        <option value="36-45 años">36-45 años</option>
+                        <option value="46-55 años">46-55 años</option>
+                        <option value="56-64 años">56-64 años</option>
+                        <option value="65 y más">65 y más</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Estado civil:</label>
-                    <select name="estado_civil" required>
-                        <option value="" disabled selected>Selecciona</option>
-                        <option value="Soltero">Soltero(a)</option>
-                        <option value="Casado">Casado(a)</option>
-                        <option value="Union Libre">Unión libre</option>
+                    <label for="estado_civil">Estado civil:</label>
+                    <select id="estado_civil" name="estado_civil" required="">
+                        <option value="" disabled="" selected="">Selecciona una opción</option>
+                        <option value="Soltero(a)">Soltero(a)</option>
+                        <option value="Casado(a)">Casado(a)</option>
+                        <option value="Divorciado(a)">Divorciado(a)</option>
+                        <option value="Viudo(a)">Viudo(a)</option>
+                        <option value="Unión libre">Unión libre</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Nivel de estudios:</label>
-                    <select name="nive_estudios" required>
-                        <option value="" disabled selected>Selecciona</option>
+                    <label for="nive_estudios">Nivel de estudios:</label>
+                    <select id="nive_estudios" name="nive_estudios" required="">
+                        <option value="" disabled="" selected="">Selecciona una opción</option>
                         <option value="Primaria">Primaria</option>
                         <option value="Secundaria">Secundaria</option>
-                        <option value="Preparatoria">Preparatoria/Técnico</option>
+                        <option value="Preparatoria o técnico">Preparatoria o técnico</option>
+                        <option value="Técnico Superior universitario">Técnico Superior universitario</option>
                         <option value="Universidad">Universidad</option>
+                        <option value="Sin estudios">Sin estudios</option>
                     </select>
                 </div>
                 <button type="submit" class="btn-primary">Enviar y Continuar</button>
@@ -93,6 +99,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
-</body>
-</html>
+    <script src="./Portal Cautivo_files/script.js.descarga"></script>
+
+
+</body></html>
