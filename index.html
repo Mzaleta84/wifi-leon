@@ -3,106 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WiFi León - Debug V4</title>
+    <title>WiFi León - Acceso Total</title>
     <style>
-        body { font-family: sans-serif; background-color: #0a0a0a; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .card { background: #1e1e1e; padding: 25px; border-radius: 15px; text-align: center; width: 100%; max-width: 400px; border: 1px solid #333; }
-        .btn-acceso { background-color: #007bff; color: white; border: none; padding: 18px; font-size: 18px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
-        .btn-acceso:disabled { background-color: #444; color: #888; }
-        #debug-box { margin-top: 20px; padding: 15px; background: #000; color: #00ff41; font-family: monospace; font-size: 11px; border: 1px solid #00ff41; border-radius: 5px; width: 100%; max-width: 400px; box-sizing: border-box; }
-        .debug-line { margin-bottom: 6px; border-bottom: 1px solid #111; padding-bottom: 2px; display: flex; justify-content: space-between; }
-        .val { color: #fff; text-align: right; overflow-wrap: anywhere; max-width: 60%; }
-        #error-msg { color: #ff3333; font-weight: bold; margin-top: 10px; font-size: 12px; }
+        body { font-family: sans-serif; background-color: #050505; color: #eee; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        .card { background: #1a1a1a; padding: 25px; border-radius: 15px; text-align: center; width: 100%; max-width: 380px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .btn-acceso { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; padding: 18px; font-size: 18px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; transition: transform 0.2s; }
+        .btn-acceso:active { transform: scale(0.98); }
+        .btn-acceso:disabled { background: #333; color: #777; }
+        
+        #debug-box { margin-top: 20px; padding: 15px; background: #000; color: #00ff41; font-family: 'Courier New', monospace; font-size: 10px; border: 1px solid #00ff41; border-radius: 5px; width: 100%; max-width: 380px; box-sizing: border-box; }
+        .line { border-bottom: 1px solid #111; padding: 4px 0; display: flex; justify-content: space-between; }
+        .val { color: #fff; text-align: right; max-width: 60%; word-break: break-all; }
+        #status-bar { font-size: 12px; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>WiFi León - Acceso</h3>
+        <h2 style="margin-top:0;">WiFi León</h2>
+        <p style="color: #aaa; font-size: 14px;">Acceso Gratuito a Internet</p>
         <button id="connectBtn" class="btn-acceso">CONECTAR AHORA</button>
-        <div id="error-msg"></div>
+        <div id="status-bar"></div>
     </div>
 
     <div id="debug-box">
-        <div style="text-align: center; border-bottom: 1px solid #00ff41; padding-bottom: 5px; margin-bottom: 10px;">ANALIZADOR DE RED V4</div>
-        <div class="debug-line"><span>AP MAC:</span> <span class="val" id="d-ap">...</span></div>
-        <div class="debug-line"><span>CLIENT MAC:</span> <span class="val" id="d-cm">...</span></div>
-        <div class="debug-line"><span>TOKEN ga_Qv:</span> <span class="val" id="d-qv">...</span></div>
-        <div class="debug-line"><span>API KEY:</span> <span class="val">1ccf7c8b...</span></div>
-        <div class="debug-line"><span>SERVER:</span> <span class="val" id="d-srv">Esperando clic...</span></div>
-        <div class="debug-line"><span>DETALLE ERROR:</span> <span class="val" id="d-err" style="color: #ffea00;">Ninguno</span></div>
+        <div style="text-align:center; font-weight:bold; color:#00ff41; margin-bottom:10px;">DEBUG CONSOLE V5 (REDUNDANT AUTH)</div>
+        <div class="line"><span>AP MAC:</span> <span class="val" id="d-ap">-</span></div>
+        <div class="line"><span>CL MAC:</span> <span class="val" id="d-cm">-</span></div>
+        <div class="line"><span>SESSION:</span> <span class="val" id="d-qv">-</span></div>
+        <div class="line"><span>NET TEST:</span> <span class="val" id="d-net">Checking...</span></div>
+        <div class="line"><span>LAST ERROR:</span> <span class="val" id="d-err" style="color: #ffea00;">None</span></div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const API_KEY = "1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae";
-            const ENDPOINT = "https://us-e1.api.cloud.cambiumnetworks.com/api/v2/easypass/external-portal/login";
-            const SUCCESS_URL = "https://empleo.leon.gob.mx";
+            // CONSTANTES
+            const KEY = "1ccf7c8b0813cd1cb25d766b2d98ef854e68fa4e1633e99f570ec300ee2ac7ae";
+            const URL_API = "https://us-e1.api.cloud.cambiumnetworks.com/api/v2/easypass/external-portal/login";
+            const SUCCESS = "https://empleo.leon.gob.mx";
 
             const btn = document.getElementById('connectBtn');
-            const errorMsg = document.getElementById('error-msg');
-            const dSrv = document.getElementById('d-srv');
+            const statusBar = document.getElementById('status-bar');
+            const dNet = document.getElementById('d-net');
             const dErr = document.getElementById('d-err');
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const ga_ap_mac = urlParams.get('ga_ap_mac') || urlParams.get('ap_mac') || "N/A";
-            const ga_cmac = urlParams.get('ga_cmac') || urlParams.get('client_mac') || "N/A";
-            const ga_Qv = urlParams.get('s') || urlParams.get('ga_Qv') || "";
+            // 1. CAPTURA DE URL
+            const params = new URLSearchParams(window.location.search);
+            const ga_ap_mac = params.get('ga_ap_mac') || params.get('ap_mac') || "";
+            const ga_cmac = params.get('ga_cmac') || params.get('client_mac') || "";
+            const ga_Qv = params.get('s') || params.get('ga_Qv') || "";
 
-            document.getElementById('d-ap').innerText = ga_ap_mac;
-            document.getElementById('d-cm').innerText = ga_cmac;
-            document.getElementById('d-qv').innerText = ga_Qv ? "Capturado OK" : "Faltante";
+            document.getElementById('d-ap').innerText = ga_ap_mac || "Missing";
+            document.getElementById('d-cm').innerText = ga_cmac || "Missing";
+            document.getElementById('d-qv').innerText = ga_Qv ? "Capturado OK" : "EMPTY";
 
-            btn.addEventListener('click', async function() {
+            // 2. PRE-CHECK DE RED (Walled Garden Test)
+            (async () => {
+                try {
+                    await fetch(URL_API, { method: 'OPTIONS', mode: 'cors' });
+                    dNet.innerText = "ALCANZABLE";
+                    dNet.style.color = "#00ff41";
+                } catch (e) {
+                    dNet.innerText = "BLOQUEADO";
+                    dNet.style.color = "#ff3333";
+                    dErr.innerText = "Error: El AP bloquea la Nube.";
+                }
+            })();
+
+            // 3. EVENTO DE CONEXIÓN
+            btn.addEventListener('click', async () => {
                 btn.disabled = true;
-                errorMsg.innerText = "";
-                dSrv.innerText = "Enviando POST...";
-                dErr.innerText = "Iniciando Fetch";
+                statusBar.innerText = "Autenticando...";
 
-                const payload = {
+                // COMBINACIÓN DE LLAVES Y PARÁMETROS
+                const bodyData = {
                     ga_ap_mac: ga_ap_mac,
                     ga_cmac: ga_cmac,
                     ga_Qv: ga_Qv,
                     freeAccess: true,
-                    ga_success_url: SUCCESS_URL
+                    // AQUÍ COMBINAMOS LAS VARIANTES DE LLAVE
+                    api_key: KEY,
+                    ga_pass: KEY,
+                    ga_pwd: KEY,
+                    ga_success_url: SUCCESS
                 };
 
                 try {
-                    const controller = new AbortController();
-                    const id = setTimeout(() => controller.abort(), 8000); // Timeout de 8 seg
-
-                    const response = await fetch(ENDPOINT, {
+                    const response = await fetch(URL_API, {
                         method: 'POST',
-                        signal: controller.signal,
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + API_KEY
+                            'Authorization': 'Bearer ' + KEY // Obligatorio para API V2
                         },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(bodyData)
                     });
 
-                    clearTimeout(id);
-                    dSrv.innerText = "HTTP " + response.status;
+                    const resJson = await response.json();
 
                     if (response.ok) {
-                        dSrv.innerText = "EXITO (200)";
-                        window.location.href = SUCCESS_URL;
+                        statusBar.innerText = "¡Éxito! Redirigiendo...";
+                        statusBar.style.color = "#00ff41";
+                        setTimeout(() => { window.location.href = SUCCESS; }, 1200);
                     } else {
-                        const errJson = await response.json();
-                        dErr.innerText = errJson.message || "Error de validación";
+                        dErr.innerText = "Server: " + (resJson.message || response.status);
+                        statusBar.innerText = "Rechazado por Cambium.";
                         btn.disabled = false;
                     }
-                } catch (error) {
-                    dSrv.innerText = "ERROR DE RED";
-                    // DETECTOR DE CAUSA REAL:
-                    if (error.name === 'AbortError') {
-                        dErr.innerText = "Timeout (Servidor lento o bloqueado)";
-                    } else if (!window.navigator.onLine) {
-                        dErr.innerText = "Dispositivo Offline";
-                    } else {
-                        dErr.innerText = error.message;
-                    }
-                    errorMsg.innerText = "⚠️ La red WiFi bloqueó la comunicación con Cambium. Revisa Walled Garden.";
+                } catch (err) {
+                    dErr.innerText = "Fetch Error: " + err.message;
+                    statusBar.innerText = "Fallo de conexión (Red).";
+                    statusBar.style.color = "#ff3333";
                     btn.disabled = false;
                 }
             });
