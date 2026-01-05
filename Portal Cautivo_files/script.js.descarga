@@ -1,16 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
     const COOKIE_NAME = 'survey_completed';
-    const API_URL = 'https://portal.sysgto.com/encuesta';
+    const API_SURVEY_URL = 'https://portal.sysgto.com/encuesta';
     
     const modal = document.getElementById('surveyModal');
     const connectBtn = document.getElementById('connectBtn');
     const surveyForm = document.getElementById('surveyForm');
     const loginForm = document.getElementById('loginForm');
 
-    // Helper para URL params
+    // Obtener parámetros de la URL
     function getUrlParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name) || "";
+        let param = urlParams.get(name);
+        // Fallback para MAC: Cambium usa ga_cmac o ga_client_mac
+        if (!param && name === 'ga_cmac') param = urlParams.get('ga_client_mac');
+        return param || "";
     }
 
     // Manejo de Cookies
@@ -26,14 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (parts.length === 2) return parts.pop().split(";").shift();
     }
 
-    // Estado inicial del Modal
+    // Mostrar/Ocultar Modal según cookie
     if (getCookie(COOKIE_NAME)) {
         modal.classList.remove('active');
         connectBtn.disabled = false;
         connectBtn.style.opacity = "1";
     }
 
-    // Submit de la Encuesta
+    // Evento Formulario Encuesta
     surveyForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(surveyForm);
@@ -42,20 +45,22 @@ document.addEventListener('DOMContentLoaded', function() {
             edad: formData.get('rango_edad'),
             estado: formData.get('estado_civil'),
             estudios: formData.get('nive_estudios'),
-            mac: getUrlParam('ga_cmac') || getUrlParam('ga_client_mac'),
+            mac: getUrlParam('ga_cmac'),
             ssid: getUrlParam('ga_ssid')
         };
 
-        // Guardar y sincronizar con SysGto
+        // Guardar localmente
         localStorage.setItem('pending_survey', JSON.stringify(data));
+
+        // Intentar envío a tu API de encuestas
         try {
-            await fetch(API_URL, {
+            await fetch(API_SURVEY_URL, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
         } catch (err) {
-            console.warn("Falla de red (encuesta guardada localmente)");
+            console.warn("API Encuesta offline. Datos guardados en navegador.");
         }
 
         setCookie(COOKIE_NAME, 'true', 180);
@@ -64,25 +69,22 @@ document.addEventListener('DOMContentLoaded', function() {
         connectBtn.style.opacity = "1";
     });
 
-    // LÓGICA DE CONEXIÓN API X-EASYPASS
+    // Evento Botón de Conectar (POST a Cambium)
     connectBtn.addEventListener('click', function() {
-        // Mapeo de parámetros desde la URL al formulario
-        const apMac = getUrlParam('ga_ap_mac');
-        const clientMac = getUrlParam('ga_cmac') || getUrlParam('ga_client_mac');
-        const session = getUrlParam('s');
-        const ssid = getUrlParam('ga_ssid');
-
-        if (!session) {
-            alert("Error: Sesión no encontrada. Por favor reconéctese al Wi-Fi.");
+        const sessionToken = getUrlParam('s');
+        
+        if (!sessionToken) {
+            alert("Error: No se detectó una sesión activa. Por favor, desconéctese y vuelva a conectarse al Wi-Fi.");
             return;
         }
 
-        document.getElementById('ga_ap_mac').value = apMac;
-        document.getElementById('ga_cmac').value = clientMac;
-        document.getElementById('s').value = session;
-        document.getElementById('ga_ssid').value = ssid;
+        // Llenar campos ocultos del formulario antes de enviar
+        document.getElementById('ga_ap_mac').value = getUrlParam('ga_ap_mac');
+        document.getElementById('ga_cmac').value = getUrlParam('ga_cmac');
+        document.getElementById('s').value = sessionToken;
+        document.getElementById('ga_ssid').value = getUrlParam('ga_ssid');
 
-        console.log("Autenticando en Cambium API con Key...");
+        console.log("Iniciando autenticación con Cambium API...");
         loginForm.submit();
     });
 });
